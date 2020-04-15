@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# List iptables rules without DNS lookup (that can really slow down listing)
+# @ Version 1.1
+# © 2020 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+    echo -e "$RED This script must be run as root... $DEFAULT"
+    exit -1
+fi
+
+clear
+iptables -L -n
+
+exit 0
