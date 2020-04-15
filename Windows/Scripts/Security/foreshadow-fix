@@ -1,0 +1,14 @@
+# Fix for 'Foreshadow' vulnerability
+# Install KB4343888 first
+# © 2020 Leonardo Ziviani all rights reserved
+
+# Registry key location
+$REG = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
+$DWORD1 = "FeatureSettingsOverride"
+$DWORD2 = "FeatureSettingsOverrideMask"
+
+# Create key
+New-ItemProperty -Path "$REG" -Name "$DWORD1" -Value '0' -PropertyType DWORD -Force
+New-ItemProperty -Path "$REG" -Name "$DWORD2" -Value '3' -PropertyType DWORD -Force
+
+exit 0
