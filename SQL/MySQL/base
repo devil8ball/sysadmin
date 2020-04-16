@@ -1,0 +1,41 @@
+-- Connect
+mysql -h X.X.X.X -p
+
+-- Load sql script
+source /path/to/script.sql
+
+-- Change DB
+use yourdb
+
+-- Exit
+exit
+
+-- New User
+
+-- A good standard is to use 3 user: standard, read only, admin
+create user youruser with password 'yourpassword';
+create user youruser_ro with password_ro 'yourpassword';
+create user youruser_admin with password_admin 'yourpassword';
+
+-- New DB
+create database yourdb;
+
+-- Grant example
+-- Replace X.X.X.X with fixed ip addess
+-- Wildcard char is '%' (ex. 192.168.0.0/24 = 192.168.0.%)
+
+-- Admin showld have all privileges on db possibly NOT from every ip (3rd line instead 2nd)
+-- Note that '%' NOT include localhost
+grant all on yourdb.* to 'youruser_admin'@'localhost';
+grant all on yourdb.* to 'youruser_admin'@'%';
+grant all on yourdb.* to 'youruser_admin'@'X.X.X.%';
+
+-- Base rules for standard user
+grant select, insert, update, delete, truncate, connect, execute, usage on yourdb.* to 'youruser'@'localhost';
+grant select, insert, update, delete, truncate, connect, execute, usage on yourdb.* to 'youruser'@'%';
+grant select, insert, update, delete, truncate, connect, execute, usage on yourdb.* to 'youruser'@'X.X.X.%';
+
+-- Base rules for readonly user
+grant select, connect on yourdb.* to 'youruser_ro'@'localhost';
+grant select, connect on yourdb.* to 'youruser'@'%';
+grant select, connect on yourdb.* to 'youruser'@'X.X.X.%';
