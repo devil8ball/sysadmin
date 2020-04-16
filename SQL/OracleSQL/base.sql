@@ -1,4 +1,4 @@
--- Utility ORACLE --
+-- OracleSQL base commands --
 
 -- Empty recyclebin --
 -- Free a LOT of space (this operation with sysdba grant will empty EVERY recyclebin) --
@@ -15,7 +15,7 @@ alter table $1 disable row movement;
 -- Reclaim unused space from lob --
 -- Useful to reclaim some space after a delete or truncate --
 -- Param $1: table name --
--- Param $2: columu name of table with type lob --
+-- Param $2: colum name of table with type lob --
 alter table $1 modify lob ($2) (shrink space);
 
 -- Get which table lob belong --
