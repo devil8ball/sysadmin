@@ -1,0 +1,26 @@
+-- Connect
+psql -h X.X.X.X -U username
+
+-- Load sql script
+\i
+
+-- Change DB
+\t yourdb
+
+-- Exit
+\q
+
+-- New User
+create user youruser with password 'yourpassword';
+
+-- New DB with owner (owner has ALL PRIVILEGES by default)
+create database yourdb with owner youruser;
+
+-- Grant all privileges on db to user
+grant all privileges on database yourdb to youruser;
+
+-- Grant base privileges on db to user
+grant select, insert, update, delete, truncate, connect, execute, usage on database yourdb to youruser;
+
+-- Grant read only privileges on db to user
+grant select, connect, execute, usage on database yourdb to youruser;
