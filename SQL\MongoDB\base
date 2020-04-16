@@ -1,0 +1,33 @@
+-- Connect from localhost
+mongo -u root -p xxx --authenticationDatabase admin
+
+-- Connect from other ip
+mongo x.x.x.x:27017/db -u root -p xxx --authenticationDatabase admin
+
+-- New user in db
+use db
+db.createUser( { user: ‘user’, pwd: ‘password’, roles: [ { role: ‘readWrite’, db: ‘database’ } ] } )
+
+-- New superuser
+Use admin
+db.createUser({user: "root",pwd: "password",roles: [ "root" ]})
+
+-- New database admin
+use db
+db.createUser({user: "mynewuser",pwd: "myuser123",roles: [ "readWrite", "dbAdmin", "userAdmin" ]});
+
+-- Delete user
+db.dropUser(“user”)
+
+-- Create new database
+use db
+
+-- Delete database
+Use db
+db.dropDatabase()
+
+-- Grant base privileges
+db.grantRolesToUser(“user”,  [ { role: “readWrite”, db: “database” } ] )
+
+-- Load script
+load("/path/to/script")
