@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Zimbra useful commands
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Char style tags
+NORMAL="\033[0m"
+BOLD="\033[1m"
+
+clear
+
+echo ""
+echo " Zimbra tips and tricks"
+echo ""
+printf " NOTE: Use \033[1mzimbra\033[0m users to launch these commands \n\n"
+
+printf " \033[1mzmcontrol status\033[0m \t\t\t\t\t\t - \t show current Zimbra services stauts \n"
+printf " \033[1mzmcontrol restart\033[0m \t\t\t\t\t\t - \t restart every Zimbra services stauts \n"
+printf " \033[1m/opt/zimbra/libexec/zmmsgtrace -s user@example.com\033[0m \t\t - \t track user email \n"
+printf " \033[1mtail -f /var/log/mail.log\033[0m \t\t\t\t\t - \t track every mail \n"
+echo ""
+
+exit 0

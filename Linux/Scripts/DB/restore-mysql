@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Restore of MySQL db
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Drop MySQL database
+function drop {
+	mysql -u root -p -e "DROP DATABASE $2; CREATE DATABASE $2;"
+}
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing tablespace name, use: restore-mysql <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+	echo "Missing database name, use: restore-mysql <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$3" ]; then
+	echo "Missing dump file name, use: restore-mysql <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ ! -f $3]; then
+	echo "Dump file not exist..."
+	exit -1
+fi
+
+# Ask for drop database before restore
+while true; do
+    read -p "Drop database before restore? [y / n] " yn
+    case $yn in
+        [Yy]* ) drop; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no...";;
+    esac
+done
+
+# Restore database
+mysql -u $1 -p -D $2 < $3
+
+exit 0

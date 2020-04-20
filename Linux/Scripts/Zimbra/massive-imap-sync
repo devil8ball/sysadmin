@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Sync account in given list from 2 servers using imap
+# Use /tools/sync.list for full account sync
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use massive-imap-sync <config-file>"
+	exit -1
+fi
+
+FILE=$1
+COLUM=4
+num=1
+
+# Log file
+LOG="/var/log/sync.log"
+
+# Arguments check
+if [ ! -f $FILE ]; then
+	echo "$FILE not found..."
+	echo "$(date +"%b %d %H:%M:%S")" - ERR - File $FILE not found >> $LOG
+	exit -1
+fi
+
+# Read file line by line
+while read line
+do
+	# Skip comments
+	if [[ "$line" == "#"* ]]; then
+		continue
+		((num++))
+	fi
+
+	colum="$(echo $line | wc -w)"
+	if [ "$colum" != "$COLUM" ]; then
+		echo "Config file contains error at line $num..."
+		exit -1
+	fi
+	sourceuser="$(echo $line | awk '{print $1}')"
+	sourcepwd="$(echo $line | awk '{print $2}')"
+	destuser="$(echo $line | awk '{print $3}')"
+	destpwd="$(echo $line | awk '{print $4}')"
+	echo "$(date +"%b %d %H:%M:%S")" - INF - Start $destuser mailbox sync >> $LOG
+	/scripts/zimbra/imap-sync $sourceuser $sourcepwd $destuser $destpwd
+	echo "$(date +"%b %d %H:%M:%S")" - INF - End $destuser mailbox sync >> $LOG
+	((num++))
+done < $FILE
+
+echo "" >> $LOG
+echo "---" >> $LOG
+echo "" >> $LOG
+
+exit 0

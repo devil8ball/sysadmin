@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/filters"
+TMP_PATH="/tmp"
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "Use filter-backup <user>"
+        echo "Ex. filter-backup willycoyote@acme.com"
+        exit -1
+fi
+
+# Remove old backups if present
+rm -f $BACKUP_PATH/filter-$1
+
+# Retrive filter for given account
+zmprov ga $1 zimbraMailSieveScript > $TMP_PATH/filter-$1
+
+# Miscellaneous fix
+sed -i -e "1d" $TMP_PATH/filter-$1
+sed "s/zimbraMailSieveScript: //g" $TMP_PATH/filter-$1 > $BACKUP_PATH/filter-$1
+
+# Remove temp file
+rm -f $TMP_PATH/filter-$1

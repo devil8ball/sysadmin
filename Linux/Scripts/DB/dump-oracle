@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Dump of Oracle db
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Current date
+DATE="$(date +%Y%m%d)"
+
+# Output folder
+OUT="/tmp"
+
+# Oracle import export folder on db server
+EXP_PATH="//u01/app/oracle/import_export"
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing username..."
+	echo "Use dump-oracle <user> <password>"
+	echo "Ex. dump-oracle willy roadrunner"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+    echo "Missing password..."
+	echo "Use dump-oracle <user> <password>"
+	echo "Ex. dump-oracle willy roadrunner"
+    exit -1
+fi
+
+# Dump and compress database
+expdp $1/$2  DIRECTORY=importDir DUMPFILE=$DATE-$1.dmp LOGFILE=$DATE-$1.log
+tar -zcvf $OUT/$DATE-$1.tar.gz $EXP_PATH/$DATE-$1.dmp $EXP_PATH/$DATE-$1.log
+rm -f $EXP_PATH/$1.dmp
+rm -f $EXP_PATH/$DATE-$1.log
+
+echo "Created file: $OUT/$DATE_$1.tar.gz..."
+
+exit 0

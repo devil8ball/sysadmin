@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Restore of OracleSQL db
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+echo "NOT READY!!!"
+exit 1
+
+# Drop OracleSQL database
+function drop {
+	echo "DROP TABLESPACE $2 INCLUDING CONTENTS AND DATAFILES;" > /tmp/drop.sql
+	echo "CREATE TABLESPACE $1 DATAFILE '$1.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE 2G;" >> /tmp/drop.sql
+	sqlplus sys as sysdba/xxx @/tmp/drop.sql
+	rm -f /tmp/drop.sql
+}
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing tablespace name, use: restore-oracle <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+	echo "Missing tablespace name, use: restore-oracle <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$3" ]; then
+	echo "Missing tablespace name, use: restore-oracle <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ ! -f $3]; then
+	echo "Dump file not exist..."
+	exit -1
+fi
+
+# Ask for drop database before restore
+while true; do
+    read -p "Drop database before restore? [y / n] " yn
+    case $yn in
+        [Yy]* ) drop; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no...";;
+    esac
+done
+
+# Restore database
+impdp sys as sydba/xxx full=Y directory=importDir dumpfile=$3 logfile=$2.log
+
+exit 0

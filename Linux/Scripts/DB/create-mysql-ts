@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Create a MySQL database with administrator user and RO user
+# NOTE: password for read only user is given password plus '_ro'
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# SQL script
+SCRIPT="/tmp/mysql.sql"
+
+# Remove old script
+rm -f $SCRIPT
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing arguments..."
+    echo "Use create-mysql-ts <database> <user> <password>"
+	echo "Ex. create-mysql-ts xxx fake fail"
+    exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+    echo "Missing arguments..."
+    echo "Use create-mysql-ts <database> <user> <password>"
+	echo "Ex. create-mysql-ts xxx fake fail"
+    exit -1
+fi
+
+# Arguments check
+if [ -z "$3" ]; then
+    echo "Missing arguments..."
+    echo "Use create-mysql-ts <database> <user> <password>"
+	echo "Ex. create-mysql-ts xxx fake fail"
+    exit -1
+fi
+
+clear
+
+# Create script
+echo "CREATE DATABASE $1;" > $SCRIPT
+echo "CREATE USER '$2'@'%' identified by '$3';" >> $SCRIPT
+echo "CREATE USER '$2_ro'@'%' identified by '$3_ro'; " >> $SCRIPT
+echo "GRANT ALL PRIVILEGES ON $1.* to '$2'@'%'; " >> $SCRIPT
+echo "GRANT SELECT ON $1.* to '$2_ro'@'%'; " >> $SCRIPT
+echo "flush privileges;" >> $SCRIPT
+echo "exit" >> $SCRIPT
+
+# Execute scritp as root
+mysql -h localhost -u root -p < $SCRIPT
+
+# Remove old script
+rm -f $SCRIPT
+
+# Print results
+echo ""
+echo "MySQL database $1 created..."
+echo ""
+echo "Pass those information to yours developer:"
+echo "  Database: $1"
+echo "  IP:   db.dodifferent.it (10.10.10.200)"
+echo "  Port: 3306"
+echo "  FULL access: $2     with password '$3'"
+echo "  RO access:   $2_ro  with password '$3_ro'"
+
+exit 0

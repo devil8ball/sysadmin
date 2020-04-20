@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Remove ALL mail from Zimbra queues
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+/opt/zimbra/common/sbin/postqueue -d ALL

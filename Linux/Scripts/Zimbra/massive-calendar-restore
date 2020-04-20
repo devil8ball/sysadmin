@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Restore ALL calendars in backup folder, erasing old data
+# Use ONLY for migration purpose
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Files path
+SCRIPT="/scripts/zimbra"
+LIST="/tmp/account.list"
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+num=0
+
+# Get backup list
+rm -f $LIST
+ls -l /backups/calendars | grep tgz | awk '{print $9}' > $LIST
+sed -i 's/calendar-//g' $LIST
+sed -i 's/.tgz//g' $LIST
+
+# Read file line by line
+while read line
+do
+	words="$(echo $line | wc -w)" 
+	
+	# Check if line is well formatted (Ex. mail)
+	if [ "$words" != "1" ]; then
+		echo "$1 contain error at line $num..."
+		echo "Lines MUST contain only 1 words (account email)"
+		exit -1
+	fi
+	
+	# Parse line
+	mail="$(echo $line | awk '{print $1}')"
+	
+	$SCRIPT/calendar-restore $mail 
+	((num++))
+done < $LIST
+
+# Remove temp files
+rm -f $LIST
+
+exit 0

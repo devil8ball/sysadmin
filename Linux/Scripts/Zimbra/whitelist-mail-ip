@@ -1,0 +1,51 @@
+#!/bin/bash
+
+RBL="/opt/zimbra/conf/postfix_rbl_override"
+
+# Run as zimbra user
+if [ "$(id -u)" != "999" ]; then
+   echo "This script must be run as zimbra user..."
+   exit -1
+fi
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "whitelist-mail-ip <ipv4 address>"
+        echo "Ex. whitelist-mail-ip 1.1.1.1"
+        exit -1
+fi
+
+# Check if given ip address is valid
+if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        for i in 1 2 3 4; do
+                if [ $(echo "$1" | cut -d. -f$i) -gt 254 ]; then
+                        echo "Malformed ip address..."
+                        echo "You cannot insert a value greater than 254 in an address.."
+                        exit -1
+                fi
+        done
+else
+        echo "Malformed ip address..."
+        echo "Use only ipv4 style ip address"
+        echo "Ex. 1.1.1.1"
+        exit -1
+fi
+
+# Check if given ip address contains a 0 at the end
+if [[ $1 == *".0" ]]; then
+        echo "Malformed ip address..."
+        echo "You cannot insert a network address..."
+        exit -1
+fi
+
+# Check if ip is alerady listed
+if cat $RBL | grep -q "$1"; then
+    echo "$1 is already whitelisted..."
+    exit -1
+fi
+
+echo $1 OK >> $RBL
+postmap $RBL
+
+exit 0

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Globally allow a mail or a domain (mail from whitelist ip will be automatically trusted)
+# Note that spamassassin service will be unavalible for about 30 seconds to recompile rules
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# SpamAssasin config file
+SPAM="/opt/zimbra/conf/salocal.cf.in"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use whitelist-mail <mail or *domain>"
+	echo "ex. whitelist-mail bob@dodifferent.com"
+	echo "ex. whitelist-mail *itsdifferent.com"
+	exit -1
+fi
+
+# Make a backup of old config
+rm -f $SPAM.bck
+cp $SPAM $SPAM.bck
+
+echo "whitelist_from $1" >> $SPAM
+
+# Restart spamassassin
+/opt/zimbra/bin/zmamavisdctl restart
+
+exit 0

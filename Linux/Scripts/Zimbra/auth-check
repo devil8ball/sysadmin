@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Paths
+TMP="/tmp"
+SASL="$TMP/sasl.log"
+SSH="$TMP/ssh.log"
+BAN="$TMP/ban-failed"
+
+# Remove old file
+rm -f $SASL
+rm -f $SSH
+rm -f $BAN
+
+clear 
+
+# Get ip from logs and save in temp files
+cat /var/log/mail.log | grep SASL | awk '{print $7}' | uniq | grep -v 194.244.43.218 | grep -v 5.8.107.233 > $SASL
+cat /var/log/auth.log | grep sshd | grep error | grep invalid | awk '{print $16}' | uniq | grep -v 194.244.43.218 | grep -v 5.8.107.233 > $SSH
+cat /var/log/auth.log | grep sshd | grep error | grep -v invalid | awk '{print $14}' | uniq | grep -v 194.244.43.218 | grep -v 5.8.107.233 >> $SSH
+
+echo "Falied mail authentication: "
+while read line
+do
+	line="$(echo $line | sed s/://g | sed s/unknown//g | sed s/://g)"
+	total="$(cat /var/log/mail.log | grep $line | wc -l)"
+	if [ "$total" -gt "10" ]; then
+		echo -e "$line \t\t $total times"
+		echo -e "ban-ip $line" >> $BAN
+	fi
+done < $SASL
+
+echo ""
+
+echo "Falied ssh authentication: "
+while read line
+do
+	total="$(cat /var/log/auth.log | grep $line | wc -l)"
+	if [ "$total" -gt "10" ]; then
+		echo -e "$line \t\t $total times"
+		echo -e "ban-ip $line" >> $BAN
+	fi
+done < $SSH
+
+# Remove old file
+rm -f $SASL
+rm -f $SSH
+
+# Generare a ready to use firewall script
+cat $BAN | sort | uniq -u > /tmp/ips
+cat /tmp/ips > $BAN
+rm -r /tmp/ips
+sed -i '/Auth/d' $BAN
+sed -i '/SASL/d' $BAN
+sed -i 's/\]//g' $BAN
+sed -i 's/\[//g' $BAN
+chmod +x $BAN
+
+echo ""
+echo "Launch $BAN to blacklist listed ips (verify first!)"
+echo ""
+
+exit 0

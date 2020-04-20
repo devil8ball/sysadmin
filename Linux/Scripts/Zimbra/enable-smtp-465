@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Enable old 465 SSL/TLS
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Enable SSL/TLS on 465
+zmprov mcf zimbraMtaTlsAuthOnly FALSE
+
+exit 0

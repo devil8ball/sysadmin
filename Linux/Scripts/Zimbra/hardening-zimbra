@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Quick hardening Zimbra SSL/TLS configuration
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Proxy ciphers
+zmprov mcf zimbraReverseProxySSLCiphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128:AES256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4'
+
+# Postfix cipher
+zmprov mcf zimbraMtaSmtpdTlsExcludeCiphers 'aNULL,MD5,DES,RC4'
+
+zmprov mcf zimbraMtaSmtpdTlsCiphers high
+zmprov mcf zimbraMtaSmtpdTlsMandatoryCiphers high
+zmdhparam set -new 2048
+mprov mcf +zimbraResponseHeader "Strict-Transport-Security: max-age=31536000"
+
+# DH param
+rm -f /opt/zimbra/conf/dhparams.pem
+openssl dhparam -out /opt/zimbra/conf/dhparams.pem 2048
+chown zimbra:zimbra /opt/zimbra/conf/dhparams.pem
+chmod 640 /opt/zimbra/conf/dhparams.pem
+
+zmproxyctl restart
+
+exit 0

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Restore given mail accounts contacts from backup
+# Avaliable mode (skip suggested):
+# skip 		- restore deleted items and ignore existing items completely
+# modify 	- restore deleted items and update existing items to match backup (unread flags etc.)
+# reset 	- delete all contents of the account and restore the backup into the now empty account
+# @version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Default restore mode (skip recommend)
+MODE="skip"
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/calendars"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use calendar-restore <user> [mode]"
+	echo "Ex. calendar-restore willy.coyote@acme.com"
+	echo "Ex. calendar-restore willy.coyote@acme.com reset"
+	exit -1
+fi
+
+# Set skip mode if specified
+if [[ $2 == "skip" ]] ; then
+	MODE="skip"
+fi
+
+# Set modify mode if specified
+if [[ $2 == "modify" ]] ; then
+	MODE="modify"
+fi
+
+# Set reset mode if specified
+if [[ $2 == "reset" ]] ; then
+	MODE="reset"
+fi
+
+# Restore mailbox from tgz backup
+zmmailbox -z -m $1 postRestURL "/?fmt=tgz&resolve=$MODE" $BACKUP_PATH/calendar-$1.tgz

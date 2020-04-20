@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Adjust Zimbra DDoS counter (100 recommend)
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use ddos-counter <num>"
+	echo "ex. ddos-counter 100"
+	exit -1
+fi
+
+# Check if argument is a valid number
+case $1 in
+    ''|*[!0-9]*) echo "$1 is not a valid number" ;;
+    *) su - zimbra -c "zmprov mcf zimbraHttpDosFilterMaxRequestsPerSec $1" ;;
+esac
+
+exit 0

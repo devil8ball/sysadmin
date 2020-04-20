@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Incremental Backup of given mail account
+# @version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/incremental"
+
+# Default backup range options (1 days ago)
+DATE_AFTER="$(date --date='1 days ago' +"%m/%d/%Y")"
+BACKUP_RANGE="$(date --date='1 days ago' +"%Y%m%d")"
+MODE="daily"
+
+# Dates
+TODAY="$(date +"%Y%m%d")"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use mailbox-backup <user> <mode>"
+	echo "Valid mode are: d | w | m | y (last day, week, month year), default mode: d"
+	echo "Ex. mailbox-backup willycoyote@acme.com d"
+	exit -1
+fi
+
+# Arguments check
+if [ -z $2 ]; then
+	echo "Missing arguments..."
+	echo "Use mailbox-backup <user> <mode>"
+	echo "Valid mode are: d | w | m | y (last day, week, month year), default mode: d"
+	echo "Ex. mailbox-backup willycoyote@acme.com d"
+	exit -1
+fi
+
+# Set backup range to 1 day
+if [[ $2 == "d" ]] ; then
+	DATE_AFTER="$(date --date='1 days ago' +"%m/%d/%Y")"
+	BACKUP_RANGE="$(date --date='1 days ago' +"%Y%m%d")"
+	MODE="daily"
+fi
+
+# Set backup range to 1 week
+if [[ $2 == "w" ]] ; then
+	DATE_AFTER="$(date --date='1 week ago' +"%m/%d/%Y")"
+	BACKUP_RANGE="$(date --date='1 week ago' +"%Y%m%d")"
+	MODE="weekly"
+
+fi
+
+# Set backup range to 1 month
+if [[ $2 == "m" ]] ; then
+	DATE_AFTER="$(date --date='1 month ago' +"%m/%d/%Y")"
+	BACKUP_RANGE="$(date --date='1 month ago' +"%Y%m%d")"
+	MODE="montly"
+fi
+
+# Set backup range to 365 day
+if [[ $2 == "y" ]] ; then
+	DATE_AFTER="$(date --date='1 year ago' +"%m/%d/%Y")"
+	BACKUP_RANGE="$(date --date='1 year ago' +"%Y%m%d")"
+	MODE="yearly"
+fi
+
+QUERY="&query=after:$DATE_AFTER"
+URL="/?fmt=tgz$QUERY"
+
+# Perform backups
+zmmailbox -z -m $1 getRestURL $URL > $BACKUP_PATH/"$MODE"/"$1"_"$MODE"_"$BACKUP_RANGE"-"$TODAY".tgz

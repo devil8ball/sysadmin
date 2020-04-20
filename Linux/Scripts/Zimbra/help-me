@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Zimbra quick help
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Char style tags
+NORMAL="\033[0m"
+BOLD="\033[1m"
+
+clear
+
+echo ""
+printf " This is a \033[1mZimbra 8.8.6 GA\033[0m server \n"
+echo ""
+printf " Main logs are in \t\t\t \033[1m/var/log/mail*\033[0m \n"
+printf " Zimbra root is \t\t\t \033[1m/opt/zimbra\033[0m \n"
+printf " Zimbra configs are in \t\t\t \033[1m/opt/zimbra/conf\033[0m \n"
+printf " Zimbra custom scripts are in \t\t \033[1m/scripts/zimbra\033[0m \n"
+printf " Zimbra mail backups are in \t\t \033[1m/backups\033[0m \n"
+printf " Zimbra guides are in \t\t\t \033[1m/docs\033[0m \n"
+printf " Zimbra import/export folder is \t \033[1m/tools\033[0m \n"
+echo ""
+printf " Zimbra \033[1mweb consolle\033[0m: \t https://zimbra.dodifferent.it:7071 (accessible ONLY from Verona local ip or VPN) \n"
+printf " Zimbra \033[1mweb mail\033[0m: \t https://zimbra.dodifferent.it or https://mail.dodifferent.it \n"
+printf " Zimbra \033[1mimap server\033[0m: \t imap.dodifferent.it, port 993, SSL/TLS \n"
+printf " Zimbra \033[1msmtp server\033[0m: \t smtp.dodifferent.it, port 587, STARTTLS \n"
+echo ""
+printf " Read \033[1m/docs/Quick-start.docx\033[0m for more info \n"
+echo ""
+printf " Go to \033[1mhttps://wiki.zimbra.com/wiki/Main_Page\033[0m for support \n" 
+printf " Upgrade wiki at \033[1mhttps://wiki.zimbra.com/wiki/Zimbra_Releases/8.7.0/Upgrade\033[0m \n"
+echo ""
+printf " Go to \033[1mhttp://mxtoolbox.com/\033[0m for test DNS and blacklist status \n\n"
+
+exit 0

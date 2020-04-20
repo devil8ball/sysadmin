@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Backup given mail account calendar
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/contacts"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use contacts-backup <user>"
+	echo "Ex. contacts-backup willycoyote@acme.com"
+	exit -1
+fi
+
+# Remove old backups if present
+rm -f $BACKUP_PATH/contacts-$1.tgz
+
+# Perform backups
+zmmailbox -z -m $1 getRestURL '/Contacts/?fmt=tgz' > $BACKUP_PATH/contacts-$1.tgz

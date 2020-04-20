@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Create all listed account in given file (see account-creation script for details)
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Files path
+SCRIPT="/scripts/zimbra"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing argument..."
+	echo "Use massive-account-creation <list>"
+	echo "Ex. massive-account-creation /path/to/your/file.list"
+	exit -1
+fi
+
+# Arguments check
+if [ ! -f $1 ]; then
+	echo "$1: file not found..."
+	exit -1
+fi
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+num=0
+
+# Read file line by line
+while read line
+do
+	# Skip comments
+	if [[ "$line" == "#"* ]]; then
+		continue
+		((num++))
+	fi
+
+	words="$(echo $line | wc -w)" 
+	
+	# Check if line is well formatted (Ex. mail password name surname)
+	if [ "$words" != "4" ]; then
+		echo "$1 contain error at line $num..."
+		echo "Uncommented line (use '#' for comments) MUST contain only 4 words separated by space or tab"
+		exit -1
+	fi
+	
+	# Parse line
+	mail="$(echo $line | awk '{print $1}')"
+	pwd="$(echo $line | awk '{print $2}')"
+	name="$(echo $line | awk '{print $3}')"
+	surname="$(echo $line | awk '{print $4}')"
+
+	$SCRIPT/account-creation $mail $pwd $name $surname 
+	((num++))
+done < $1
+
+exit 0

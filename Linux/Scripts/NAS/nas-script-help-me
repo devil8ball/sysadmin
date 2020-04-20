@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Scripts help
+# @ Version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+clear
+
+echo ""
+echo " NAS Scripts explanation"
+echo ""
+
+# TODO
+
+exit 0

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Clean CBPolicy database
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+DB_PATH="/opt/zimbra/data/cbpolicyd/db/cbpolicyd.sqlitedb"
+DB_NAME="cbpolicyd.sqlitedb"
+
+# Backup database
+cp $DB_PATH/$DB_NAME cp $DB_PATH/$DB_NAME.bck
+
+# Run vacuum
+/usr/bin/sqlite3 $DB_PATH/$DB_NAME 'vacuum;'
+
+exit 0

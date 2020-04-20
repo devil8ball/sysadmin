@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Dump of MySQL db
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Current date
+DATE=$(date +%Y%m%d)
+
+# Output folder
+OUT=/tmp
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing username..."
+	echo "Use dump-mysql <user> <database>"
+	echo "Ex. dump-mysql willy acme"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+	echo "Missing tablespace name...>"
+	echo "Use dump-mysql <user> <database>"
+	echo "Ex. dump-mysql willy acme"
+	exit -1
+fi
+
+# Dump and compress database
+mysqldump -u $1 -p $2 > $OUT/$DATE-$1.sql
+tar -zcvf $OUT/$DATE-$1.tar.gz $OUT/$DATE-$1.sql
+rm -f $OUT/$DATE-$1.sql
+
+echo "Created file: $OUT/$DATE-$1.tar.gz..."
+
+exit 0

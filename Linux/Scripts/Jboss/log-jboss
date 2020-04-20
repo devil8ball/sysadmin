@@ -1,0 +1,4 @@
+#!/bin/bash
+
+clear
+tail -f /opt/wildfly/standalone/log/server.log

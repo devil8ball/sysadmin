@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Remove every mail in the inbox folder for given accoun
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use account-creation <mail> <password> <name> <surname>"
+	echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+	exit -1
+fi
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Prompt to confirm actions
+echo "This will erase ALL mail of $1 account..."
+echo "Make a backup first, this operation is NOT REVESIBLE..."
+echo "Are you sure you want to continue? [y/n] "
+read input
+
+# Erase user inbox
+if [ "$input" = "y" ]; then
+	zmmailbox -z -m $1 emptyFolder /Inbox
+elif [ "$input" = "Y" ]; then
+	zmmailbox -z -m $1 emptyFolder /Inbox
+else
+	echo "Request canceled..."
+	exit 0
+fi
+
+exit 0

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Purge recycle
+# @ Version 1.1
+# © 2018 Leonardo Ziviani all rights reserved
+
+ROOT_PATH="/"
+LIST="/tmp/list.recycle"
+
+rm -rf $LIST
+
+find $ROOT_PATH -name .recycle > $LIST
+
+while read line;
+do
+        rm -rf $line/*
+done < $LIST
+
+rm -rf $LIST
+
+exit 0

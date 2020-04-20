@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# TLS per domain exception
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Exception file
+TLS="/opt/zimbra/conf/tls_policy"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use tls-exception <domain> <exception>"
+	echo "valid exception: disable, ssl3, cipher, remove, help"
+	echo "ex. tls-exception domain.com disable"
+	exit -1
+fi
+
+# Check for valid domain
+if [[ $1 != *'.'* ]]; then
+	echo "Invalid domain..."
+	exit -1
+fi
+
+# Arguments check
+if [ -z $2 ]; then
+	echo "Missing arguments..."
+	echo "Use tls-exception <domain> <exception>"
+	echo "valid exception: disable, ssl3, cipher, remove, help"
+	echo "ex. tls-exception domain.com disable"
+	exit -1
+fi
+
+# Exception descriptions
+function helpme {
+	echo " Arguments:"
+	echo -e "  - cipher: \t allow weak cipher"
+	echo -e "  - disable: \t fully disable TLS encryption"
+	echo -e "  - ssl3: \t allow SSLv3 protocol"
+	echo -e "  - remove: \t remove previous inserted exception"
+}
+
+# Check for duplicate entry
+if [[ $2 != *"remove"* ]]; then
+	if grep "$1" $TLS > /dev/null
+	then
+		echo "Duplicated entry..."
+		echo "Use tls-exception remove $1 to remove previous exception"
+		exit -1
+	fi
+fi
+
+# Add exception to file
+case "$2" in
+	disable ) echo -e "$1 \t none" >> $TLS ;;
+	ssl3 ) echo -e "$1 \t encrypt protocols=!SSLv2" >> $TLS ;;
+	cipher ) echo -e "$1 \t ciphers=low" >> $TLS ;;
+	remove ) sed -i "/$1/d" $TLS ;;
+    *) helpme
+esac
+
+# Launch postmap
+/opt/zimbra/common/sbin/postmap $TLS
+chown zimbra:zimbra $TLS*
+
+echo "Restart Zimbra to apply changes..."
+
+exit 0

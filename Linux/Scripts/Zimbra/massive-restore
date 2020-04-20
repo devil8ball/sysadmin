@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Restore EVERYTHING (mail, contacts..) from backup folder, erasing old data
+# Use ONLY for migration purpose
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Files path
+SCRIPT="/scripts/zimbra"
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Call all restore script
+$SCRIPT/massive-mailbox-restore
+$SCRIPT/massive-calendar-restore
+$SCRIPT/massive-contacts-restore
+$SCRIPT/massive-filter-restore
+
+exit 0

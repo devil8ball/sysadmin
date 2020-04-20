@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Restore EVERYTHING (mail, contacts..) from backup folder, erasing old data
+# Use ONLY for migration purpose
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use password-expire <mail>"
+	echo "Ex. password-expire willy.coyote@acme.com"
+	exit -1
+fi
+
+# Files path
+SCRIPT="/scripts/zimbra"
+BACKUP="/backups"
+MAIL="$BACKUP/$1.tgz"
+FILTER="$BACKUP/filters/filter-$1"
+CALENDAR="$BACKUP/calendars/calendar-$1.tgz"
+CONTACT="$BACKUP/contatcs/contacts-$1.tgz"
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Call all restore script (first command will reset before start restore)
+function nukerestore {
+	$SCRIPT/mailbox-restore $1 reset
+	$SCRIPT/calendar-restore $1
+	$SCRIPT/contacts-restore $1
+	$SCRIPT/filter-restore $1
+	$SCRIPT/set-default-spam-filter $1
+}
+
+echo ""
+# Check if mail backup is present    
+if [ -f $MAIL ]; then
+	size="$(du -sh $MAIL | awk '{print $1}')"
+	echo "Mailbox backup for $1 ($size) found..."
+else
+	echo "Mailbox backup for $1 NOT found..."
+fi
+
+# Check if filter backup is present    
+if [ -f $FILTER ]; then
+	size="$(du -sh $FILTER | awk '{print $1}')"
+	echo "Filter backup for $1 ($size) found..."
+else
+	echo "Filter backup for $1 NOT found..."
+fi
+
+# Check if calendar backup is present    
+if [ -f $CALENDAR ]; then
+	size="$(du -sh $CALENDAR | awk '{print $1}')"
+	echo "Calendar backup for $1 ($size) found..."
+else
+	echo "Calendar backup for $1 NOT found..."
+fi
+
+# Check if contact backup is present   
+if [ -f $CONTACT ]; then
+	size="$(du -sh $CONTACT | awk '{print $1}')"
+	echo "Contacts backup for $1 ($size) found..."
+else
+	echo "Contacts backup for $1 NOT found..."
+fi
+echo ""
+
+# Prompt to confirm actions
+echo "This will erase ALL mail of $1 account..."
+echo "Make a backup first, this operation is NOT REVESIBLE..."
+echo "Are you sure you want to continue? [y/n] "
+read input
+
+# Erase user inbox
+if [ "$input" = "y" ]; then
+	nukerestore $1
+elif [ "$input" = "Y" ]; then
+	nukerestore $1
+else
+	echo "Request canceled..."
+fi
+
+exit 0

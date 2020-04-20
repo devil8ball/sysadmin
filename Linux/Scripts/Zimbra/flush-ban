@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Fully Reset the "BAN" (banned ip) chain of firewall
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Files path
+RULES="/etc/iptables/rules.v4"
+
+# Backup of old rules
+rm -f $RULES.bck
+cp $RULES $RULES.bck
+
+# Flush rules
+iptables -F BAN
+iptables -A BAN -j RETURN
+iptables -I BAN -s 1.2.3.4 -j DROP
+iptables-save > $RULES
+
+echo "BAN chain flushed and saved..."
+
+exit 0

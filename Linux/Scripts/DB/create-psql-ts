@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Create an Oracle tablespace with default settings
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# SQL script
+SCRIPT="/tmp/psql.sql"
+
+# Remove old script
+rm -f $SCRIPT
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing arguments..."
+    echo "Use create-psql-ts <database> <user> <password>"
+	echo "Ex. create-psql-ts xxx fake fail"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+    echo "Missing arguments..."
+    echo "Use create-psql-ts <database> <user> <password>"
+	echo "Ex. create-psql-ts xxx fake fail"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$3" ]; then
+    echo "Missing arguments..."
+    echo "Use create-psql-ts <database> <user> <password>"
+	echo "Ex. create-psql-ts xxx fake fail"
+	exit -1
+fi
+
+# Create script
+echo "CREATE USER $2 with password '$3';" > $SCRIPT
+echo "CREATE USER $2_ro with password '$3_ro';" >> $SCRIPT
+echo "CREATE DATABASE $1 with owner $2;" >> $SCRIPT
+echo "GRANT CONNECT ON DATABASE $1 TO $2_ro;" >> $SCRIPT
+echo "GRANT USAGE ON SCHEMA public TO $2_ro;" >> $SCRIPT
+
+# Execute scritp as sysdba
+psql -h localhost -U postgres -a -f $SCRIPT
+
+# Remove old script
+rm -f $SCRIPT
+
+# Print results
+echo ""
+echo "PostgreSQL database $1 created..."
+echo ""
+echo "Pass those information to yours developer:"
+echo "  Database: $1"
+echo "  IP:   db.dodifferent.it (10.10.10.200)"
+echo "  Port: 5432"
+echo "  FULL access: $2     with password '$3'"
+echo "  RO access:   $2_ro  with password '$3_ro'"
+
+exit 0

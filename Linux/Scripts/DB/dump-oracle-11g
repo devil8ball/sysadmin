@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Dump of Oracle db in 11g compatibility mode
+# Default VERSION is 11.2.0.2.0, change according to target oracle database version
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Current date
+DATE="$(date +%Y%m%d)"
+
+# Output folder
+OUT="/tmp"
+
+# Oracle import export folder on db server
+EXP_PATH="//u01/app/oracle/import_export"
+
+# Oracle destination version
+VERSION="11.2.0.2.0"
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing username..."
+	echo "Use dump-oracle <user> <password>"
+	echo "Ex. dump-oracle willy roadrunner"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+    echo "Missing password..."
+	echo "Use dump-oracle <user> <password>"
+	echo "Ex. dump-oracle willy roadrunner"
+	exit -1
+fi
+
+# Dump and compress database
+expdp $1/$2 DIRECTORY=importDir DUMPFILE=$DATE-$1-v$VERSION.dmp LOGFILE=$DATE-$1.log VERSION=$VERSION
+tar -zcvf $OUT/$DATE-$1-v$VERSION.tar.gz $EXP_PATH/$DATE-$1-v$VERSION.dmp $EXP_PATH/$DATE-$1.log
+rm -f $EXP_PATH/$1-v$VERSION.dmp
+rm -f $EXP_PATH/$DATE-$1.log
+
+echo "Created file: $OUT/$DATE-$1-v$VERSION.tar.gz..."
+
+exit 0

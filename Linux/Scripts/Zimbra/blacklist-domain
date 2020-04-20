@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Globally ban a mail or a domain (mail from banned ip will be automatically rejected)
+# Note that spamassassin service will be unavalible for about 30 seconds to recompile rules
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# SpamAssasin config file
+SPAM="/opt/zimbra/conf/salocal.cf.in"
+SMTP="/opt/zimbra/conf/postfix_reject_sender"
+
+# Restart spamassassin and saslauthd
+function restart {
+	echo ""
+	su - zimbra -c "/opt/zimbra/bin/zmamavisdctl restart"
+	su - zimbra -c "/opt/zimbra/bin/zmmtactl restart"
+}
+
+# Show commands
+function show {
+	echo ""
+	echo "To apply new config, use these commands (as zimbra user): "
+	echo " /opt/zimbra/bin/zmamavisdctl restart"
+	echo " /opt/zimbra/bin/zmmtactl restart"
+	echo ""
+}
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use blacklist-mail <mail or *domain>"
+	echo "ex. blacklist-mail bob@competitor1.com"
+	echo "ex. blacklist-mail *competitor2.com"
+	exit -1
+fi
+
+# Make a backup of old config
+rm -f $SPAM.bck
+rm -f $SMTP.bck
+cp $SPAM $SPAM.bck
+cp $SMTP $SMTP.bck
+
+# Add blacklist line
+echo "blacklist_from $1" >> $SPAM
+echo "$1 REJECT" >> $SMTP
+
+# Postmap
+/opt/zimbra/common/sbin/postmap $SMTP
+
+# Ask for restart of zimbra service
+echo "CAUTION! Apply settings will restart some zimbra services..."
+echo "A restart require up to 30 seconds..."
+while true; do
+    read -p "Would you like to restart now? [y / n] " yn
+    case $yn in
+        [Yy]* ) restart; exit 0;;
+        [Nn]* ) show; exit 0;;
+        * ) echo "Please answer yes or no...";;
+    esac
+done
+
+exit 0

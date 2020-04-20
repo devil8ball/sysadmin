@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Disable XFS quota on XFS partition
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing argumens..."
+        echo "Use disable-xfs-quota <mount-path>"
+		echo "Ex. disable-xfs-quota /media/xfs"
+        exit -1
+fi
+
+quotaoff -a
+xfs_quota -x -c "off -ug" $1
+
+exit 0

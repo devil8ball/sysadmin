@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Backup EVERYTHING (mail, contacts..)
+# @version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Files path
+SCRIPT="/scripts/zimbra"
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Call all backup script
+# mailbox-backup MUST be always the last scheduled one!
+$SCRIPT/massive-calendar-backup
+$SCRIPT/massive-contacts-backup
+$SCRIPT/massive-filter-backup
+$SCRIPT/massive-mailbox-backup
+
+exit 0

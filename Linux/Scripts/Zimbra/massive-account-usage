@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Query all accounts and notify to the user (or adminis) if password is near to expire
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+TEMP_PATH="/tmp"
+SCRIPTS_PATH="/scripts/zimbra"
+ACCOUNTS="$TEMP_PATH/accounts.list"
+
+# Get a list of all accounts (except amministrative and daemon ones)
+$SCRIPTS_PATH/list-accounts > $ACCOUNTS
+
+# Read file line by line
+while read line
+do
+	# Skip comments
+	if [[ "$line" == "#"* ]]; then
+		continue
+		((num++))
+	fi
+
+	echo $line
+	
+	# Check if file is well formatted
+	words="$(echo $line | wc -w)" 
+	if [ "$words" != "1" ]; then
+		echo "$1 contain error at line $num..."
+		echo "Uncommented line (use '#' for comments) MUST contain only 1 words"
+		exit -1
+	fi
+	
+	$SCRIPTS_PATH/account-usage $line
+	((num++))
+done < $ACCOUNTS
+
+rm -f $ACCOUNTS
+
+exit 0

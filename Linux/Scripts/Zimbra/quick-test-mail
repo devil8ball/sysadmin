@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Send a quick mail from command line
+# Due to Zimbra configuration, 'to' address MUST be valid
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Check for mail package
+if [ -z "/usr/bin/mail" ]; then
+        echo "Missing mail package.."
+        exit -1
+fi
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "Use quick-test-mail <to>"
+        echo "Ex. quick-test-mail support@acme.com"
+		exit -1
+fi
+
+# Send mail from postmaster 
+echo "Hi I'm a working SMTP server!" | /usr/bin/mail -a "Content-type: text/plain" -a 'From: admin@dodifferent.it' -s "SMTP server check" $1
+
+exit 0

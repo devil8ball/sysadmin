@@ -1,0 +1,118 @@
+#!/bin/bash
+
+# Incremental weekly backup form all domain account (entry are queried from LDAP)
+# @version 1.4
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/incremental/daily"
+TEMP_PATH="/tmp"
+SCRIPTS_PATH="/scripts/zimbra"
+ACCOUNTS=$TEMP_PATH/accounts.list
+REPORT=$TEMP_PATH/report
+LOG="/var/log/inc-daily-backup.log"
+
+# Multiple tab
+TAB="&nbsp &nbsp &nbsp"
+
+# Line counter
+LINES=0
+
+# Report subject
+SUBJECT="[FAILED]"
+
+# Minimun backup size
+MIN="30K"
+
+# Dates
+DATE_AFTER="$(date --date='1 days ago' +"%m/%d/%Y")"
+BACKUP_RANGE="$(date --date='1 days ago' +"%Y%m%d")"
+TODAY="$(date +"%Y%m%d")"
+
+# Remove temp files
+rm -f $ACCOUNTS
+rm -f $REPORT
+
+# Get a list of all accounts (except amministrative and daemon ones)
+echo "$(date +"%b %d %H:%M:%S")" - INF - Start daily incremental mailbox backups >> $LOG
+echo "$(date +"%b %d %H:%M:%S")" - INF - Generating mailbox list >> $LOG
+$SCRIPTS_PATH/list-accounts > $ACCOUNTS
+
+# Check accounts list
+if [ -e $ACCOUNTS  ]; then
+	COUNT="$(wc -l $ACCOUNTS | awk '{print $1}')"
+	if [ "$COUNT" -gt "10" ]; then
+		echo "$(date +"%b %d %H:%M:%S")" - INF - Mailbox list successfully generated >> $LOG
+	else
+		echo "$(date +"%b %d %H:%M:%S")" - WAR - Mailbox list entry number seems to be to low >> $LOG
+	fi
+else
+	echo "$(date +"%b %d %H:%M:%S")" - ERR - Mailbox list not generated >> $LOG
+	exit -1
+fi
+
+# Backup every account in list
+while read line
+do
+	echo "$(date +"%b %d %H:%M:%S")" - INF - Start daily incremental backup of $line account >> $LOG
+	$SCRIPTS_PATH/mailbox-inc-backup $line d > /dev/null 2>&1
+	echo "$(date +"%b %d %H:%M:%S")" - INF - End daily incremental backup of $line account >> $LOG
+done < $ACCOUNTS
+
+# Check backup result
+while read line
+do
+	FILE=$BACKUP_PATH/$line"_daily_"$BACKUP_RANGE"-"$TODAY.tgz
+	if [ -e $FILE ]; then
+		SIZE="$(ls -lh $FILE | awk '{print $5}')"
+		echo "$(date +"%b %d %H:%M:%S")" - INF - Incremental daily backup for $line account successfully verified >> $LOG
+		echo -e "$line &nbsp&nbsp&nbsp $TAB SUCCESS &nbsp [<b>$SIZE</b>]<br>" >> $REPORT
+	else
+		echo "$(date +"%b %d %H:%M:%S")" - ERR - Incremental daily backup for $line account failed >> $LOG
+		echo -e "$line &nbsp&nbsp&nbsp <b>FAILED</b><br>" >> $REPORT
+	fi
+	((LINES++))
+done < $ACCOUNTS
+
+# Count success/failed backups
+success="$(cat $REPORT | grep -c SUCCESS)"
+failed="$(cat $REPORT | grep -c FAILED)"
+
+# Add count at the end of the report
+echo -e "<br>$LINES scheduled backups: $success passed, $failed failed<br>" >> $REPORT
+TOT_SIZE="$(du -sh $BACKUP_PATH | awk '{print $1}')"
+
+# Set subject based on backup result
+if [ "$failed" = 0 ]; then
+        if [[ "$TOT_SIZE" > "$MIN" ]]; then
+			SUBJECT="[SUCCESS]"
+		else
+			SUBJECT="[WARNING]"
+		fi
+else
+        SUBJECT="[FAILED]"
+fi
+
+# Add report header
+HEADER="<b>$(date +"%b %d %Y") report</b><br><br>Status: &nbsp&nbsp <b>$SUBJECT</b><br>Backup size: &nbsp&nbsp <b>$TOT_SIZE</b><br><br>"
+echo $HEADER > $REPORT.tmp
+cat $REPORT >> $REPORT.tmp
+cat $REPORT.tmp > $REPORT
+rm -f $REPORT.tmp
+
+# Send report to 'sistemi@dodifferent.it'
+echo "$(date +"%b %d %H:%M:%S")" - INF - Sending report to sistemi@dodifferent.it >> $LOG
+cat $REPORT | mailx -a 'Content-Type: text/html' -a 'From: backup@dodifferent.it' -s "$SUBJECT Mailbox daily backup report" sistemi@dodifferent.it
+
+# Remove temp files
+rm -f $ACCOUNTS
+rm -f $REPORT
+
+echo "" >> $LOG
+echo "---" >> $LOG
+echo "" >> $LOG
+
+exit 0

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Restore ALL filter in backup folder, erasing old data
+# Use ONLY for migration purpose
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Files path
+SCRIPT="/scripts/zimbra"
+LIST="/tmp/account.list"
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+num=0
+
+# Get backup list
+rm -f $LIST
+ls -l /backups/filters | grep filter | awk '{print $9}' > $LIST
+sed -i 's/filter-//g' $LIST
+
+# Read file line by line
+while read line
+do
+	words="$(echo $line | wc -w)" 
+	
+	# Check if line is well formatted (Ex. mail)
+	if [ "$words" != "1" ]; then
+		echo "$1 contain error at line $num..."
+		echo "Lines MUST contain only 1 words (account email)"
+		exit -1
+	fi
+	
+	# Parse line
+	mail="$(echo $line | awk '{print $1}')"
+	
+	$SCRIPT/filter-restore $mail
+	((num++))
+done < $LIST
+
+# Remove temp files
+rm -f $LIST
+
+exit 0

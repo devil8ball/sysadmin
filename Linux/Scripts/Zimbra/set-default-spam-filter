@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+FILTER="/scripts/config/template-spam-filter"
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "Use filter-restore <user>"
+        echo "Ex. filter-restore willycoyote@acme.com"
+        exit -1
+fi
+
+filter="$(cat $FILTER)"
+zmprov ma $1 zimbraMailSieveScript "$filter"
+
+exit 0

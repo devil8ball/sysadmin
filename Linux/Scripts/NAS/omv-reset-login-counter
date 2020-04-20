@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Reset OMV login counter
+# @ Version 1.1
+# © 2018 Leonardo Ziviani all rights reserved
+
+pam_tally --reset
+pam_tally2 --reset
+
+exit 0

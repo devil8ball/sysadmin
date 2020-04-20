@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Check RAID status of HP StorageWorks
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+/opt/compaq/hpacucli/bld/hpacucli ctrl all show config
+
+exit 0

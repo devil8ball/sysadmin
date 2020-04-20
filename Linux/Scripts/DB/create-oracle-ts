@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Create an Oracle tablespace with default settings
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# SQL script
+SCRIPT="/tmp/oracle.sql"
+
+# Remove old script
+rm -f $SCRIPT
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing arguments..."
+    echo "Use create-oracle-ts <database> <user> <password>"
+	echo "Ex. create-oracle-ts xxx bob ilovesql"
+    exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+    echo "Missing arguments..."
+    echo "Use create-oracle-ts <database> <user> <password>"
+	echo "Ex. create-oracle-ts xxx bob ilovesql"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$3" ]; then
+    echo "Missing arguments..."
+    echo "Use create-oracle-ts <database> <user> <password>"
+	echo "Ex. create-oracle-ts xxx bob ilovesql"
+	exit -1
+fi
+
+# Create script
+echo "CREATE TABLESPACE $1 DATAFILE '$1.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE 2G;" >> $SCRIPT
+echo "CREATE USER $2 IDENTIFIED BY $3 DEFAULT TABLESPACE $1 TEMPORARY TABLESPACE temp QUOTA UNLIMITED ON $1;" >> $SCRIPT
+echo "CREATE ROLE $1_data_inquiry IDENTIFIED BY $1_data_inquiry;" >> $SCRIPT
+echo "CREATE ROLE $1_data_manipulation IDENTIFIED BY $1_data_manipulation;" >> $SCRIPT
+echo "GRANT resource, connect, imp_full_database, $1_data_inquiry, $1_data_manipulation TO $2;" >> $SCRIPT
+echo "GRANT create session to $2;"
+echo "GRANT read,write on directory importDir to $2;" >> $SCRIPT
+echo "exit" >> $SCRIPT
+
+# Execute scritp as sysdba
+sqlplus sys as sysdba/XXXXX @$SCRIPT
+
+# Remove old script
+rm -f $SCRIPT
+
+# Print results
+echo ""
+echo "OracleSLQ tablespace $1 created..."
+echo ""
+echo "Pass those information to yours developer:"
+echo "  Database: $1"
+echo "  IP:   db.dodifferent.it (10.10.10.200)"
+echo "  Port: 1521"
+echo "  SID:  DEV"
+echo "  FULL access: $2     with password '$3'"
+
+exit 0

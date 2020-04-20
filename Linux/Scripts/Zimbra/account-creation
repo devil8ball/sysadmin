@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Create a standard mail account (password expire in 90 days and 5GB mail quota)
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+SCRIPTS_PATH="/scripts/zimbra"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use account-creation <mail> <password> <name> <surname>"
+	echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+	exit -1
+fi
+
+# Arguments check
+if [ -z $2 ]; then
+        echo "Missing arguments..."
+	echo "Use account-creation <mail> <password> <name> <surname>"
+        echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+        exit -1
+fi
+
+# Arguments check
+if [ -z $3 ]; then
+        echo "Missing arguments..."
+        echo "Use account-creation <mail> <password> <name> <surname>"
+        echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+        exit -1
+fi
+
+# Arguments check
+if [ -z $4 ]; then
+        echo "Missing arguments..."
+        echo "Use account-creation <mail> <password> <name> <surname>"
+        echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+        exit -1
+fi
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Default COS (CAUTION! it's different for EVERY server)
+COS="9a9aa0a5-db67-4a3d-8c1e-26231e9dac52"
+
+# Account creation
+zmprov ca $1 $2 cn "$3 $4" displayName "$3 $4" givenName "$3" sn "$4" description "utente $3 $4" zimbraPrefFromDisplay "$3 $4" zimbraCOSid $COS telephoneNumber "+39 045-8538770 - Interno 201" fax "+39 045-8538779" company "Dodifferent S.r.l." street "Via Alberto Dominutti, 20" l "Verona" st "Italia" co "Italia" postalCode "37135" zimbraPasswordMustChange TRUE
+zmprov csig $1 "$3$4" zimbraPrefMailSignatureHTML "<br>$3 $4<br>- Ruolo -<br><br>Tel. +39 045 8538 77*<br>Fax. +39 045 8538 779<br><br>Do different S.r.l.<br>Via Dominutti, 20<br>I-37135, Verona - Italy<br>Codice Fiscale e Partita IVA : 04187530235<br><hr>This message contains information which may be confidential and/or privileged. Unless you are the addressee (or authorized to receive for the addressee), you may not use, copy or disclose to anyone the message or any information contained in the message. If you have received the message in error, please advise the sender by reply e-mail to <a href=\"mailto:$1\">$1</a> and delete the message. Many thanks.<br><br>Il presente messaggio contiene informazioni di carattere riservato e tutelate dal segreto professionale. Qualora non foste il destinatario (o autorizzato dallo stesso al ricevimento) non usate, copiate o diffondete il presente messaggio o le informazioni contenute. Se avete ricevuto il messaggio per errore, Vi preghiamo di cancellarlo e avvisare il mittente tramite e-mail a <a href=\"mailto:$1\">$1</a>. Grazie<br><br>P Before printing, think about the environment<br>"
+zmprov modifyIdentity $1 DEFAULT zimbraPrefDefaultSignatureId "$3$4"
+
+# Add to everyone distribution list
+zmprov adlm tutti@dodifferent.it $1
+
+# Add default filter for spam
+$SCRIPTS_PATH/set-default-spam-filter $1

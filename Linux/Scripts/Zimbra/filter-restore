@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/filters"
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "Use filter-restore <user>"
+        echo "Ex. filter-restore willycoyote@acme.com"
+        exit -1
+fi
+
+# Arguments check
+if [ ! -f $BACKUP_PATH/filter-$1 ]; then
+        echo "File not exist..."
+        exit -1
+fi
+
+filter="$(cat $BACKUP_PATH/filter-$1)"
+zmprov ma $1 zimbraMailSieveScript "$filter"

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Backup all mail filter for domain account (entry are queried from LDAP)
+# @version 1.4
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups/calendars"
+TEMP_PATH="/tmp"
+SCRIPTS_PATH="/scripts/zimbra"
+ACCOUNTS=$TEMP_PATH/accounts.list
+LOG="/var/log/calendar-backup.log"
+
+# Multiple tab
+TAB="&nbsp &nbsp &nbsp"
+
+# Line counter
+LINES=0
+
+# Remove temp files
+rm -f $ACCOUNTS
+
+# Get a list of all accounts (except amministrative and daemon ones)
+echo "$(date +"%b %d %H:%M:%S")" - INF - Start mailbox calendar backups >> $LOG
+echo "$(date +"%b %d %H:%M:%S")" - INF - Generating mailbox list >> $LOG
+$SCRIPTS_PATH/list-accounts > $ACCOUNTS
+
+# Check accounts list
+if [ -e $ACCOUNTS  ]; then
+	COUNT="$(wc -l $ACCOUNTS | awk '{print $1}')"
+	if [ "$COUNT" -gt "10" ]; then
+		echo "$(date +"%b %d %H:%M:%S")" - INF - Mailbox list successfully generated >> $LOG
+	else
+		echo "$(date +"%b %d %H:%M:%S")" - WAR - Mailbox list entry number seems to be to low >> $LOG
+	fi
+else
+	echo "$(date +"%b %d %H:%M:%S")" - ERR - Mailbox list not generated >> $LOG
+	exit -1
+fi
+
+# Backup every account calendar in list
+while read line
+do
+	echo "$(date +"%b %d %H:%M:%S")" - INF - Start filter backup of $line account >> $LOG
+	$SCRIPTS_PATH/calendar-backup $line
+	echo "$(date +"%b %d %H:%M:%S")" - INF - End filter backup of $line account >> $LOG
+done < $ACCOUNTS
+
+# Check backup result
+while read line
+do
+	if [ -e $BACKUP_PATH/calendar-$line  ]; then
+			SIZE="$(ls -lh $BACKUP_PATH/$line.tgz | awk '{print $5}')"
+			echo "$(date +"%b %d %H:%M:%S")" - INF - Filter backup for $line account successfully verified >> $LOG
+	else
+		echo "$(date +"%b %d %H:%M:%S")" - ERR - Filter Backup for $line account failed >> $LOG
+		echo -e "$line &nbsp&nbsp&nbsp <b>FAILED</b><br>" >> $REPORT
+	fi
+	((LINES++))
+done < $ACCOUNTS
+
+# Remove temp files
+rm -f $ACCOUNTS
+
+echo "" >> $LOG
+echo "---" >> $LOG
+echo "" >> $LOG
+
+exit 0

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Quick hardening Zimbra spamassassin configuration
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Config files
+SPAM="/opt/zimbra/data/spamassassin/localrules/sauser.cf"
+su - zimbra -c "tocuh $SPAM"
+
+# Install packages
+apt-get install -y razor pyzor
+
+# Enable pyzor
+su - zimbra -c "pyzor --homedir /opt/zimbra/data/amavisd/.pyzor discover"
+echo "" >> $SPAM
+echo "# Pyzor" >> $SPAM
+echo "use_pyzor 1" >> $SPAM
+echo "pyzor_path /usr/bin/pyzor" >> $SPAM
+echo "pyzor_timeout 20" >> $SPAM
+
+# Enable razor
+su - zimbra -c "razor-admin -home=/opt/zimbra/data/amavisd/.razor -create"
+su - zimbra -c "razor-admin -home=/opt/zimbra/data/amavisd/.razor -discover"
+su - zimbra -c "razor-admin -home=/opt/zimbra/data/amavisd/.razor -register"
+echo "" >> $SPAM
+echo "# Razor" >> $SPAM
+echo "use_razor2 1" >> $SPAM
+
+# Tweak for spam score
+echo "" >> $SPAM
+echo "Score" >> $SPAM
+echo "score URIBL_BLACK 3.250" >> $SPAM
+echo "score RAZOR2_CHECK 3.250" >> $SPAM
+echo "score PYZOR_CHECK 3.250" >> $SPAM
+echo "score BAYES_99 4.000" >> $SPAM
+echo "score BAYES_60 2.250" >> $SPAM
+echo "score BAYES_50 1.500" >> $SPAM
+echo "score BAYES_00 -0.500" >> $SPAM
+echo "score RP_MATCHES_RCVD -0.000" >> $SPAM
+
+# Enforce antispam rules
+su - zimbra -c "wget -N https://www.pccc.com/downloads/SpamAssassin/contrib/KAM.cf -O /opt/zimbra/data/spamassassin/localrules/sakam.cf"
+
+exit 0

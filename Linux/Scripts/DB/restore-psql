@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Restore of PostgreSQL db
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Drop PostgreSQL database
+function drop {
+	psql -h localhost -U postgres -c "DROP DATABASE $2;"
+	psql -h localhost -U postgres -c "CREATE DATABASE $2 OWNER $1;"
+}
+
+# Arguments check
+if [ -z "$1" ]; then
+	echo "Missing username, use: restore-psql <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$2" ]; then
+	echo "Missing tablespace name, use: restore-psql <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$3" ]; then
+	echo "Missing dump file, use: restore-psql <user> <database> <dump-file>"
+	exit -1
+fi
+
+# Arguments check
+if [ ! -f $3 ]; then
+	echo "Dump file not exist..."
+	exit -1
+fi
+
+# Ask for drop database before restore
+while true; do
+    read -p "Drop database before restore? [y / n] " yn
+    case $yn in
+        [Yy]* ) drop $1 $2; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no...";;
+    esac
+done
+
+# Restore database
+#pg_restore -i -U $1 -d $2 -v "$3"
+psql -U $1 -d $2 -a -f $3
+
+exit 0

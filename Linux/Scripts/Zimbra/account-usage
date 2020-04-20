@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Check the total account usage and notify the user
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use account-usage <mail>"
+	echo "Ex. account-usage willy.coyote@acme.com"
+	exit -1
+fi
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Get total mailbox size
+TOTAL="$(zmprov ga $1 | grep "zimbraMailQuota" | cut -d ":" -f2)"
+let "TOTAL=($TOTAL/1024/1024)"
+
+# Get current mailbox usage
+#USAGE="$(zmmailbox -z -m $1 gms | awk '{print $1}' | cut -d '.' -f1)"
+USAGE="$(zmmailbox -z -m $1 gms)"
+
+# If usage is in MB, simply remove metric and turn in integer value
+if [[ $USAGE == *"MB" ]]; then
+  USAGE="$(echo $USAGE | awk '{print $1}' | cut -d '.' -f1)"
+fi
+
+# If usage is in GB, first convert to MB then remove metric and turn in integer value
+if [[ $USAGE == *"GB" ]]; then
+  USAGE="$(echo $USAGE | awk '{print $1}' | cut -d '.' -f1)"
+  let "USAGE=($USAGE*1024)"
+fi
+
+# Percentage of usage
+let "PERC=($USAGE*100/$TOTAL)"
+
+# Mail texts
+SUBJECT="Spazio casella di posta"
+SUBJECT_EXPIRED="[ERROR] Spazio casella di posta"
+BODY_PRE="Gentile utente,<br><br>L'utilizzo della tua casella di posta ha raggiunto il<b>"
+BODY_POST="% </b>di spazio utilizzato.<br><br>Elimina e/o archivia i vecchi messaggi per liberare spazio.<br>Al raggiungimento del 100% di utilizzo, <b>non</b> sara' piu' possibile inviare o ricevere email.<br>Per maggiori informazioni, contatta <a href=\"mailto:sistemi@dodifferent.it?subject=Spazio%20casella%20di%20posta\">sistemi@dodifferent.it</a><br><br>La seguente mail e' stata generata automaticamente: si prega di <b>non</b> rispondere.<br><br>Cordialmente,<br>Sistemi Dodifferent"
+BODY_ADMIN_PRE="Gentile Amministratore,<br><br>L'utilizzo della casella di posta dell'utente <b>"
+BODY_ADMIN_POST="</b>ha supertato il 95%.<br>Cazzialo prima che il suo account si blocchi completamente...</b>"
+
+# Send an alert to administrator if mailbox usage is critical
+if [ "$PERC" -gt "95" ]; then
+	echo "$BODY_ADMIN_PRE $1 $BODY_ADMIN_POST" | mailx -a 'Content-Type: text/html' -a 'From: postmaster@dodifferent.it' -a 'X-Priority: 1' -a 'X-MSMail-Priority: High' -s "$SUBJECT_EXPIRED" sistemi@dodifferent.it
+fi
+
+# Send an alert to user if mailbox usage is more than 80%
+if [ "$PERC" -gt "79" ]; then
+	echo "$BODY_PRE $PERC$BODY_POST" | mailx -a 'Content-Type: text/html' -a 'From: postmaster@dodifferent.it' -a 'X-Priority: 1' -a 'X-MSMail-Priority: High' -s "$SUBJECT" "$1"
+fi

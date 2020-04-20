@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# List all user account fo Zimbra server, except "daemons"
+# @version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+zmprov -l gaa | grep -v info@mycommander.it | grep -v admin@dodifferent.it | grep -v spam.trainer@dodifferent.it | grep -v ham.trainer@dodifferent.it | grep -v virus-quarantine.co7wdoixze@dodifferent.it | grep -v galsync.xtscfihj@dodifferent.it | grep -v alert@dodifferent.it | grep -v galsync@dodifferent.srl | grep -v galsync@mycommander.it | grep -v galsync@mycommander.eu | grep -v galsync@mycommander.srl | grep -v galsync@bediff.it | grep -v galsync@bediff.srl | grep -v galsync@edifferent.it | grep -v galsync@dodifferent.eu | grep -v backup@dodifferent.it | grep -v logwatch@dodifferent.it | grep -v report@dodifferent.it | grep -v ups@dodifferent.it | grep -v cisco@dodifferent.it | grep -v fortinet@dodifferent.it | grep -v sheltia@dodifferent.it | grep -v hostmaster@dodifferent.it | grep -v ltl@dodifferent.it | grep -v printer@dodifferent.it | grep -v developer@dodifferent.it | grep -v webmaster@dodifferent.it | grep -v prtg@dodifferent.it | grep -v password@dodifferent.it | grep -v timetracker@dodifferent.it | grep -v ethos@dodifferent.it | grep -v wordpress@dodifferent.it | grep -v gis@dodifferent.it | grep -v sheltia@dodifferent.it | grep -v hostmaster@dodifferent.it | grep -v device@dodifferent.it | grep -v no-reply@dodifferent.it | sort
+
+exit 0

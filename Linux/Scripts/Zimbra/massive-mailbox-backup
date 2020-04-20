@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# Backup all domain account (entry are queried from LDAP)
+# @version 1.5
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Paths
+BACKUP_PATH="/backups"
+TEMP_PATH="/tmp"
+SCRIPTS_PATH="/scripts/zimbra"
+ACCOUNTS=$TEMP_PATH/accounts.list
+REPORT=$TEMP_PATH/report
+LOG="/var/log/backup.log"
+
+# Multiple tab
+TAB="&nbsp &nbsp &nbsp"
+
+# Line counter
+LINES=0
+
+# Headers
+YES="<td bgcolor=\"#99ff99\">Y</td>"
+NO="<td bgcolor=\"#ff1a1a\">N</td>"
+CALENDAR=$NO
+FILTERS=$NO
+CONTACTS=$NO
+
+# Report subject
+SUBJECT="[FAILED]"
+
+# Minimun backup size
+MIN="50G"
+
+# Remove temp files
+rm -f $ACCOUNTS
+rm -f $REPORT
+
+# Get a list of all accounts (except amministrative and daemon ones)
+echo "$(date +"%b %d %H:%M:%S")" - INF - Start mailbox backups >> $LOG
+echo "$(date +"%b %d %H:%M:%S")" - INF - Generating mailbox list >> $LOG
+$SCRIPTS_PATH/list-accounts > $ACCOUNTS
+
+# Check accounts list
+if [ -e $ACCOUNTS  ]; then
+	COUNT="$(wc -l $ACCOUNTS | awk '{print $1}')"
+	if [ "$COUNT" -gt "10" ]; then
+		echo "$(date +"%b %d %H:%M:%S")" - INF - Mailbox list successfully generated >> $LOG
+	else
+		echo "$(date +"%b %d %H:%M:%S")" - WAR - Mailbox list entry number seems to be to low >> $LOG
+	fi
+else
+	echo "$(date +"%b %d %H:%M:%S")" - ERR - Mailbox list not generated >> $LOG
+	exit -1
+fi
+
+# Backup every account in list
+while read line
+do
+	echo "$(date +"%b %d %H:%M:%S")" - INF - Start backup of $line account >> $LOG
+	$SCRIPTS_PATH/mailbox-backup $line
+	echo "$(date +"%b %d %H:%M:%S")" - INF - End backup of $line account >> $LOG
+done < $ACCOUNTS
+
+# Check backup result
+echo "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"5\" border=\"1\" align=\"center\" bgcolor=\"#4d94ff\"><tr><th>Account</th><th>Size</th><th>Calendar</th><th>Filter</th><th>Contacts</th></tr>" >> $REPORT
+while read line
+do
+	if [ -e $BACKUP_PATH/$line.tgz  ]; then
+		SIZE="$(ls -lh $BACKUP_PATH/$line.tgz | awk '{print $5}')"
+		if [ -e $BACKUP_PATH/calendars/calendar-$line.tgz  ]; then
+			CALENDAR=$YES
+		fi
+		if [ -e $BACKUP_PATH/contacts/contacts-$line.tgz  ]; then
+			CONTACTS=$YES
+		fi
+		if [ -e $BACKUP_PATH/filters/filter-$line  ]; then
+			FILTERS=$YES
+		fi
+		echo "$(date +"%b %d %H:%M:%S")" - INF - Backup for $line account successfully verified >> $LOG
+		echo "<tr align=\"center\" bgcolor=\"#cce0ff\"><td>$line</td><td bgcolor=\"#99ff99\">$SIZE</td>$CALENDAR$FILTERS$CONTACTS</tr>" >> $REPORT
+	else
+		echo "$(date +"%b %d %H:%M:%S")" - ERR - Backup for $line account failed >> $LOG
+		echo "<tr align=\"center\" bgcolor=\"#cce0ff\"><td>$line</td><td bgcolor=\"#ff1a1a\">0G</td>$CALENDAR$FILTERS$CONTACTS</tr>" >> $REPORT
+	fi
+	((LINES++))
+done < $ACCOUNTS
+
+# Count failed backups
+failed="$(cat $REPORT | grep -c '<td>0G</td>')"
+
+# Add count at the end of the report
+TOT_SIZE="$(du -sh $BACKUP_PATH | awk '{print $1}')"
+TOT_SIZE_CAL="$(du -sh $BACKUP_PATH/calendars | awk '{print $1}')"
+TOT_SIZE_FIL="$(du -sh $BACKUP_PATH/filters | awk '{print $1}')"
+TOT_SIZE_CON="$(du -sh $BACKUP_PATH/contacts | awk '{print $1}')"
+
+# Add count at the end of the report
+echo -e "<br>$LINES scheduled backups: $success passed, $failed failed<br>" >> $REPORT
+TOT_SIZE="$(du -sh $BACKUP_PATH | awk '{print $1}')"
+
+# Set subject based on backup result
+if [ "$failed" = 0 ]; then
+	if [[ "$TOT_SIZE" > "$MIN" ]]; then
+		SUBJECT="[SUCCESS]"
+	else
+		SUBJECT="[WARNING]"
+    fi
+else
+	SUBJECT="[FAILED]"
+fi
+
+# Add more info to report
+echo "<tr align=\"center\" bgcolor=\"#4d94ff\"><td><b>$failed backups failed</b></td><td><b>$TOT_SIZE</b></td><td><b>$TOT_SIZE_CAL</b></td><td><b>$TOT_SIZE_FIL</b></td><td><b>$TOT_SIZE_CON</b></td></tr>" >> $REPORT
+echo "</table><br>" >> $REPORT
+
+# Send report to 'sistemi@dodifferent.it'
+echo "$(date +"%b %d %H:%M:%S")" - INF - Sending report to sistemi@dodifferent.it >> $LOG
+cat $REPORT | mailx -a 'Content-Type: text/html' -a 'From: backup@dodifferent.it' -s "$SUBJECT Mailbox backup report - $(date +"%d %B %Y")" sistemi@dodifferent.it
+
+# Remove temp files
+rm -f $ACCOUNTS
+rm -f $REPORT
+
+echo "" >> $LOG
+echo "---" >> $LOG
+echo "" >> $LOG
+
+exit 0

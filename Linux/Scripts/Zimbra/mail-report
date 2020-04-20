@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Show Zimbra mail report
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+/opt/zimbra/bin/qshape -s hold | head

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Create a DKIM for given domain
+# @version 1.4
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use create-dkim <domain>"
+	echo "Ex. create-dkim acme.com"
+	exit -1
+fi
+
+# Valid domain check
+if [[ $1 != *"."* ]]; then
+	echo "Wrong domain..."
+	echo "Use a valid domain name (ex. acme.com)"
+	exit -1
+fi
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+#Paths
+OUT="/tools/conf/dkim-$1"
+
+# Generate dkim entry
+sudo -u zimbra /opt/zimbra/libexec/zmdkimkeyutil -a -d $1 > $OUT
+
+echo "DKIM entry generated..."
+echo "Use info in $OUT to add the necessary TXT record to the domain register..."
+
+exit 0

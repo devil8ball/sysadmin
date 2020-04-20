@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Adjust Zimbra DDoS ip whitelist
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "Use ddos-whitelist <ipv4 address>"
+		echo "Ex. ddos-whitelist 1.1.1.1"
+        exit -1
+fi
+
+# Resolve DNS from given access if necessary
+if [[ $1 == *[A-z]* ]]; then
+	ip="$(host $1 | awk '{print $4}' | tail -n1)"
+	if [[ $ip == *" not found"* ]]; then
+		echo "Invalid or unresolvable hostname..."
+		exit -1
+	fi
+	echo "$1 resolved as $ip..."
+fi
+
+# Check if given ip address is valid
+if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+	for i in 1 4; do
+		if [ $(echo "$1" | cut -d. -f$i) -gt 254 ]; then
+			echo "Malformed ip address..."
+			echo "You cannot insert a value greater than 254 in an address.."
+			exit -1
+		fi
+	done
+else
+	echo "Malformed ip address..."
+	echo "Use only ipv4 style ip address (use: host $1 | awk '{print \$4}' | tail -n1)"
+	echo "Ex. 1.1.1.1"
+	exit -1
+fi
+
+# Check if given ip address contains a 0 at the end
+if [[ $1 == *".0" ]]; then
+	echo "Malformed ip address..."
+	echo "You cannot insert a network address..."
+	exit -1
+fi
+
+# Check if given ip address start with 0
+if [[ $1 == "0."* ]]; then
+	echo "Malformed ip address..."
+	echo "You cannot insert an address like 0.x.x.x..."
+	exit -1
+fi
+
+su - zimbra -c "zmprov mcf +zimbraHttpThrottleSafeIPs $1"
+
+exit 0

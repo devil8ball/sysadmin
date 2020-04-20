@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Create a 'daemon' mail account (no password expire, send only privileges and 100MB mail quota)
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use account-creation <mail> <password> <name> <surname>"
+	echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+	exit -1
+fi
+
+# Arguments check
+if [ -z $2 ]; then
+        echo "Missing arguments..."
+	echo "Use account-creation <mail> <password> <name> <surname>"
+        echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+        exit -1
+fi
+
+# Arguments check
+if [ -z $3 ]; then
+        echo "Missing arguments..."
+        echo "Use account-creation <mail> <password> <name> <surname>"
+        echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+        exit -1
+fi
+
+# Arguments check
+if [ -z $4 ]; then
+        echo "Missing arguments..."
+        echo "Use account-creation <mail> <password> <name> <surname>"
+        echo "Ex. account-creation wcoyote@acme.com dieroadrunner Willy Coyote"
+        exit -1
+fi
+
+# Zimbra cmd paths
+export PATH=$PATH:/opt/zimbra/bin
+
+# Default COS (CAUTION! it's different for EVERY server)
+COS="edaf959c-8b6d-46e9-b9bb-0db103ce6efc"
+
+# Account creation
+zmprov ca $1 $2 cn "$3 $4" displayName "$3 $4" givenName "$3" description "utente $3 $4" zimbraPrefFromDisplay "$3 $4" zimbraCOSid $COS telephoneNumber "+39 045-8538770" fax "+39 045-8538779" company "Dodifferent S.r.l." street "Via Alberto Dominutti, 20" l "Verona" st "Italia" co "Italia" postalCode "37135" zimbraPasswordMustChange FALSE

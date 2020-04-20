@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Sync mail from Google for Business mail to a new imap mail server
+# Make sure to enable IMAP SSL and PLAIN auth on both server
+# @version 1.5
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Servers
+ZIMBRA_VR="mx1.dodifferent.it"
+ZIMBRA_EC2="mx-old.dodifferent.it"
+
+# Arguments check
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use imap-sync <source-user> <source-pwd> <dest-user> <dest-pwd>"
+	echo "Ex. imap-sync willy.coyote@acme.com dieroadrunner willy.coyote@acme.us iamagenius"
+	exit -1
+fi
+
+# Arguments check
+if [ -z $2 ]; then
+    echo "Missing arguments..."
+    echo "Use imap-sync <source-user> <source-pwd> <dest-user> <dest-pwd>"
+	echo "Ex. imap-sync willy.coyote@acme.com dieroadrunner willy.coyote@acme.us iamagenius"
+    exit -1
+fi
+
+# Arguments check
+if [ -z $3 ]; then
+    echo "Missing arguments..."
+    echo "Use imap-sync <source-user> <source-pwd> <dest-user> <dest-pwd>"
+	echo "Ex. imap-sync willy.coyote@acme.com dieroadrunner willy.coyote@acme.us iamagenius"
+    exit -1
+fi
+
+# Arguments check
+if [ -z $4 ]; then
+    echo "Missing arguments..."
+    echo "Use imap-sync <source-user> <source-pwd> <dest-user> <dest-pwd>"
+	echo "Ex. imap-sync willy.coyote@acme.com dieroadrunner willy.coyote@acme.us iamagenius"
+    exit -1
+fi
+
+# Syns with fast parameters
+# Add --dry for test without start sync
+imapsync --host1 $ZIMBRA_EC2 --user1 $1 --password1 $2 --port1 993 --ssl1 --authmech1 PLAIN --host2 $ZIMBRA_VR --user2 $3 --password2 $4 --port2 993 --ssl2 --authmech2 PLAIN --nosyncacls --subscribe --syncinternaldates --buffersize 8192000 --nofoldersizes --skipsize --fast
+
+# Filters example:
+# --exclude "Folder" 							exclude folder from sync (name are case sensitive!)
+# --regextrans1 's/foo/var/g'					classic sed substitution (change will be apply on every folder and subfolder on SOURCE server) 
+# --regextrans2 's/foo/var/g'					classic sed substitution (change will be apply on every folder and subfolder on DESTINATION server) 
+

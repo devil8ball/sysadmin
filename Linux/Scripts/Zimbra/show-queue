@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Show Zimbra queue status
+# @version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+/opt/zimbra/common/sbin/postqueue -p

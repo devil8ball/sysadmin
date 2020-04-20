@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Clean jboss/wilfly temporary files
+# @ Version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+JBOSS="/opt/wildfly/standalone/tmp/vfs/"
+TMP="/tmp"
+
+# Files
+ALL="all.list"
+FILE="file.list"
+
+echo "Deleteting old temp file..."
+
+# Remove old files
+rm -f $TMP/$ALL
+rm -f $TMP/$FILE
+
+# List jboss cached files
+ls -lt $JBOSS > $TMP/$ALL
+
+# Count lines number, and skip clear if less than 5 lines
+LINE="$(wc -l $TMP/$ALL | awk '{print $1}')"
+if (( $LINE < 5 )); then
+	echo "There is nothing to do..."
+	exit 0;
+fi
+
+cat $TMP/$ALL | awk  '{print $9}' > rm -f $TMP/$FILE
+
+DEPLOY=5
+TEMP=5
+
+# Read list and remove line by line
+while read line           
+do    
+	if [[ $line == *"deployment"* ]]; then
+		DEPLOY=$(( DEPLOY-1 ))
+		if (( $DEPLOY < 0 )); then
+			rm -r $JBOSS/$line
+			echo $line removed...
+		fi
+	fi
+	if [[ $line == *"temp"* ]]; then
+		TEMP=$(( TEMP-1 ))
+		if (( $TEMP < 0 )); then
+			rm -r $JBOSS/$line
+			echo $line removed...
+		fi
+	fi
+done <$TMP/$FILE  
+
+echo "Old temp file successfully removed..."
+
+rm -f $TMP/$ALL
+rm -f $TMP/$FILE
+
+exit 0
