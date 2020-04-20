@@ -1,3 +1,7 @@
+  
+# Set custom Skype state
+# © 2020 Leonardo Ziviani all rights reserved
+
 $CustomPresencePath="$env:SystemDrive\Windows"
 $XMLFile=$CustomPresencePath+"\SmartWorking.xml"
 $xmlpathinregistry=$XMLFile
@@ -11,14 +15,14 @@ $HereString=@"
 		<activity LCID="1036">Smartworking - Occupe</activity>
 		<activity LCID="1034">Smartworking - Ocupado</activity>
 		<activity LCID="1031">Smartworking - Verfugbar</activity>
-        		<activity LCID="1040">Smartworking - Occupato</activity>
+        	<activity LCID="1040">Smartworking - Occupato</activity>
     	</customState>
 	<customState ID="2" availability="Online">
 		<activity LCID="1033">Smartworking - Online</activity>
 		<activity LCID="1036">Smartworking - Disponible</activity>
 		<activity LCID="1034">Smartworking - Disponible</activity>
 		<activity LCID="1031">Smartworking - Besetzt</activity>
-        		<activity LCID="1040">Smartworking - Disponibile</activity>
+        	<activity LCID="1040">Smartworking - Disponibile</activity>
     	</customState>
 </customStates>
 "@    
