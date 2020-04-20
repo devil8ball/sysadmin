@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Automatic Zimbra 8 installation
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Edit this settings to match your requirements
+NAME="mx"
+DOMAIN="dodifferent.it"
+IP="10.10.10.240"
+PWD="DDZ1mbr4!"
+
+# Paths
+BASE_PATH="/scripts/installer"
+SETUP_PATH="/scripts/setup"
+TMP="/tmp"
+
+# Files
+ZIMBRA="zcs-8.7.11_GA_1854.RHEL7_64.20170531151956.tgz"
+DNS="/etc/dnsmasq.conf"
+INSTALL="config-zimbra"
+KEYSTROKES="key-zimbra"
+
+# Install needed software
+yum install perl perl-core ntpl nmap sudo libidn gmp libaio libstdc++ unzip sysstat sqlite dnsmasq netcat-openbsd resolvconf unzip pax sysstat sqlite3 -y
+yum install arj cabextract p7zip rpm gzip bzip2 nomarch cpio lzop freeze tnef -y
+
+# Configure server
+$SETUP_PATH/set-static-ip $IP
+$SETUP_PATH/set-hostname $NAME
+
+# Configure DNS
+echo "server=8.8.8.8" > $DNS
+echo "server=8.8.4.4" >> $DNS
+echo "domain=dodifferent.it" >> $DNS
+echo "mx-host=dodifferent.it,mx.dodifferent.it,5" >> $DNS
+echo "listen-address=127.0.0.1" >> $DNS
+
+# Enable DNS
+systemctl enable dnsmasq 
+systemctl enable dnsmasq 
+
+# Copy files
+cp $BASE_PATH/$ZIMBRA $TMP
+cp $BASE_PATH/$INSTALL $TMP
+cp $BASE_PATH/$KEYSTROKES $TMP
+
+# Extract files
+tar xzf $TMP/$ZIMBRA
+
+# Install and cofigure Zimbra
+$TMP/$ZIMBRA/.install.sh -s $TMP/$KEYSTROKES
+/opt/zimbra/libexec/zmsetup.pl -c $TMP/$INSTALL
+
+exit 0

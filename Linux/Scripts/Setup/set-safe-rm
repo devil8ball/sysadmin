@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Set safe rm command
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+PROFILE="/etc/profile"
+ROOT_PROFILE="/root/.bashrc"
+SAFERM="rm-with-check"
+SAFERM_PATH="/scripts/config/$SAFERM"
+LOGFILE="/var/log/killers.log"
+
+# Copy safe rm to /bin
+cp -r $SAFERM_PATH /bin
+chmod +rx /bin/$SAFERM
+
+# Create log file
+touch $LOGFILE
+chmod 666 $LOGFILE
+
+# Add alias to users profiles
+echo '' >> $PROFILE
+echo "alias rm='/bin/$SAFERM'" >> $PROFILE
+
+# Add alias to root profiles
+echo '' >> $ROOT_PROFILE
+echo "alias rm='/bin/$SAFERM'" >> $ROOT_PROFILE
+
+exit 0

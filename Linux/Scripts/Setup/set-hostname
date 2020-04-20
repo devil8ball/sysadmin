@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Set hostname
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+HOSTS="/etc/hosts"
+
+# Arguments check
+if [ -z "$1" ]; then
+    echo "Missing argument...."
+    echo "Use set-hostname hostname"
+    echo "Ex. set-hostname stupidvm"
+    exit -1
+fi
+
+# Set hostname
+echo $1 > /etc/hostname
+hostname $1
+if [ -x "$(command -v hostnamectl)" ]; then
+	hostnamectl set-hostname $1
+fi
+if [ -f /etc/sysconfig/network ]; then
+	echo "NETWORKING=yes" > /etc/sysconfig/network
+	echo "HOSTNAME=$1.dodifferent.it" >> /etc/sysconfig/network
+fi
+
+# Sets hosts file with FQDN
+echo "127.0.0.1	$1.dodifferent.it localhost.dodifferent.it $1 localhost" > $HOSTS
+echo "" >> $HOSTS
+echo "10.10.10.230	dc1.dodifferent.it dc1" >> $HOSTS
+echo "10.10.10.231	dc2.dodifferent.it dc2" >> $HOSTS
+
+exit 0

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Automatic installation of Postgresql
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+BASE_PATH="/scripts/installer"
+
+# Install postgresql
+if which apt > /dev/null 2>&1; then
+    apt-get install -y postgresql
+elif which yum > /dev/null 2>&1; then
+	yum install -y postgresql
+fi
+
+exit 0

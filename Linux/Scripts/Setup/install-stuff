@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Install useful package on a fresh new VM (run it once!)
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+SCRIPT_PATH="/scripts"
+
+# Packages managers
+APT="apt"
+YUM="yum"
+PKG=""
+
+# Find server package manager
+if which yum > /dev/null 2>&1; then
+    PKG=$YUM
+elif which apt > /dev/null 2>&1; then
+	PKG=$APT
+fi
+
+# Install useful packages Debian or Ubuntu way (apt)
+if [[ "$PKG" == "$APT" ]]; then
+	apt-get -y install iptables-persistent ntp open-vm-tools nfs-common cifs-utils bash-completion dos2unix sudo curl net-tools unzip dnsutils traceroute ntpdate ssmtp mailutils
+fi
+
+# Install useful packages Centos or Red Hat way (yum)
+if [[ "$PKG" == "$APT" ]]; then
+	yum -y install iptables-persistent ntp open-vm-tools nfs-common cifs-utils bash-completion dos2unix sudo curl net-tools unzip dnsutils traceroute ntpdate ssmtp mailutils
+fi
+
+# Full update
+$SCRIPT_PATH/update-forced
+
+exit 0

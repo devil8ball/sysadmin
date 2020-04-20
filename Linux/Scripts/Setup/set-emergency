@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Create emergency user
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+BANNER="/home/emergency/banner"
+
+# Create emergency users
+echo "Adding local emergency user..."
+useradd -m -s /bin/rbash -d /home/emergency emergency
+echo "" > $BANNER
+echo "For EMERGENCY reboot, run: sudo reboot (no password required)" >> $BANNER
+echo "Every login / reboot will be tracked, so do not abuse it!" >> $BANNER
+echo "" > $BANNER
+passwd emergency
+
+exit 0

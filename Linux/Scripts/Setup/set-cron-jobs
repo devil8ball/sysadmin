@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Set useful cron job
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+CRON_PURGE="/etc/cron.d/purge-log"
+CRON_UPDATE="/etc/cron.d/force-update"
+CRON_REBOOT="/etc/cron.d/check-reboot"
+
+# Add automatic log purge
+echo "# Purge log every month" > $CRON_PURGE
+echo "" >> $CRON_PURGE
+echo "SHELL=/bin/bash" >> $CRON_PURGE
+echo "PATH=/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/zimbra/bin:/scripts" >> $CRON_PURGE
+echo "" >> $CRON_PURGE
+echo "# Purge server log every first day of the month at 7:00" >> $CRON_PURGE
+echo "0 7 1 * * root /scripts/purge-log > /dev/null 2>&1" >> $CRON_PURGE
+
+# Add full system update
+echo "# Force full system upgrade every week" > $CRON_UPDATE
+echo "" >> $CRON_UPDATE
+echo "SHELL=/bin/bash" >> $CRON_UPDATE
+echo "PATH=/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/zimbra/bin:/scripts" >> $CRON_UPDATE
+echo "" >> $CRON_UPDATE
+echo "# Full system upgrade every monday at 9:00" >> $CRON_UPDATE
+echo "0 9 * * 1 root /scripts/update-forced > /dev/null 2>&1" >> $CRON_UPDATE
+
+# Add notification of reboot
+echo "# Check every day if system reboot is required" > $CRON_REBOOT
+echo "" >> $CRON_REBOOT
+echo "SHELL=/bin/bash" >> $CRON_REBOOT
+echo "PATH=/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/zimbra/bin:/scripts" >> $CRON_REBOOT
+echo "" >> $CRON_REBOOT
+echo "# Check if reboot is required every working day at 8:00" >> $CRON_REBOOT
+echo "0 8 * * 1-5 root /scripts/check-reboot > /dev/null 2>&1" >> $CRON_REBOOT
+
+exit 0

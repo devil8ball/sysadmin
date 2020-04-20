@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Set ssh server configuration
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+SSH="/etc/ssh/sshd_config"
+
+# Config ssh
+sed -i 's/#Port/Port/g' $SSH
+sed -i 's/#ListenAddress/ListenAddress/g' $SSH 
+sed -i 's/#MaxAuthTries 6/MaxAuthTries 3/g' $SSH
+sed -i 's/#MaxSessions 10/MaxSessions 3/g' $SSH
+sed -i 's/#KerberosAuyhentication no/KerberosAuyhentication/g' $SSH
+sed -i 's/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' $SSH
+sed -i 's/#AllowAgentForwarding yes/AllowAgentForwarding no/g' $SSH
+sed -i 's/X11Forwarding yes/X11Forwarding no/g' $SSH
+sed -i 's/#UseDNS yes/UseDNS no/g' $SSH
+sed -i 's/#MaxStartups 10:30:100/MaxStartups 10:30:100/g' $SSH
+sed -i 's/#PermitTunnel no/PermitTunnel no/g' $SSH
+echo "" >> $SSH
+echo "# Cipher settings" >> $SSH
+echo "Ciphers aes128-ctr,aes192-ctr,aes256-ctr" >> $SSH
+echo "MACs hmac-sha1,umac-64@openssh.com,hmac-ripemd160" >> $SSH
+
+exit 0

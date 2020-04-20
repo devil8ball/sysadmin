@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# First setup of a fresh installed VM
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+SCRIPT_PATH="/scripts"
+SETUP_PATH=$SCRIPT_PATH"/setup"
+
+
+$SETUP_PATH/optimize
+
+echo "Insert machine name: "
+read name
+$SETUP_PATH/set-hostname $name
+$SETUP_PATH/new-host-key
+echo "Insert new static ip (from 10.10.10.200 to 250): "
+read ip
+$SETUP_PATH/set-static-ip $ip
+$SCRIPT_PATH/iptables-reset
+$SCRIPT_PATH/iptables-set
+echo "You should reboot the VM to fully apply changes"
+
+exit 0

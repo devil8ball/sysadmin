@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Set eviroment variables
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+PROFILE="/etc/profile"
+ROOT_PROFILE="/root/.bashrc"
+
+# Add stuff to users profiles
+echo '' >> $PROFILE
+echo 'export HISTTIMEFORMAT="%d/%m/%y %T "' >> $PROFILE
+echo 'export PATH=$PATH:/scripts' >> $PROFILE
+echo 'export PATH=$PATH:/sbin' >> $PROFILE
+echo '' >> $PROFILE
+echo 'export NORMAL="\033[0m"' >> $PROFILE
+echo 'export BOLD="\033[1m"' >> $PROFILE
+echo 'export DIM="\033[2m"' >> $PROFILE
+echo 'export UNDER="\033[4m"' >> $PROFILE
+echo 'export BLINK="\033[5m"' >> $PROFILE
+echo 'export REV="\033[7m"' >> $PROFILE
+echo 'export HIDE="\033[8m"' >> $PROFILE
+echo 'export TEXT_DEFAULT="\033[39m" ' >> $PROFILE
+echo 'export TEXT_BLACK="\033[30m"' >> $PROFILE
+echo 'export TEXT_RED="\033[31m"' >> $PROFILE
+echo 'export TEXT_GREEN="\033[32m"' >> $PROFILE
+echo 'export TEXT_YELLOW="\033[33m"' >> $PROFILE
+echo 'export TEXT_BLUE="\033[34m"' >> $PROFILE
+echo 'export TEXT_MAGENTA="\033[35m"' >> $PROFILE
+echo 'export TEXT_CYAN="\033[36mn"' >> $PROFILE
+echo 'export TEXT_WHITE="\033[97m"' >> $PROFILE
+echo 'export BACK_DEFAULT="\033[49m" ' >> $PROFILE
+echo 'export BACK_BLACK="\033[40m"' >> $PROFILE
+echo 'export BACK_RED="\033[41m"' >> $PROFILE
+echo 'export BACK_GREEN="\033[42m"' >> $PROFILE
+echo 'export BACK_YELLOW="\033[43m"' >> $PROFILE
+echo 'export BACK_BLUE="\033[44m"' >> $PROFILE
+echo 'export BACK_MAGENTA="\033[45m"' >> $PROFILE
+echo 'export BACK_CYAN="\033[46mn"' >> $PROFILE
+echo 'export BACK_WHITE="\033[107m"' >> $PROFILE
+echo 'export RESET="\033[2J\033[0;0H"' >> $PROFILE
+echo '' >> $PROFILE
+echo "PS1='\[\e[0;32m\]\u\[\e[m\] \[\e[1;34m\]\w\[\e[m\] \[\e[1;31m\]\$\[\e[m\] '" >> $PROFILE
+
+# Add stuff to root profiles
+echo '' >> $ROOT_PROFILE
+echo 'export HISTTIMEFORMAT="%d/%m/%y %T "' >> $ROOT_PROFILE
+echo 'export PATH=$PATH:/scripts' >> $ROOT_PROFILE
+echo '' >> $ROOT_PROFILE
+echo 'export NORMAL="\033[0m"' >> $ROOT_PROFILE
+echo 'export BOLD="\033[1m"' >> $ROOT_PROFILE
+echo 'export DIM="\033[2m"' >> $ROOT_PROFILE
+echo 'export UNDER="\033[4m"' >> $ROOT_PROFILE
+echo 'export BLINK="\033[5m"' >> $ROOT_PROFILE
+echo 'export REV="\033[7m"' >> $ROOT_PROFILE
+echo 'export HIDE="\033[8m"' >> $ROOT_PROFILE
+echo 'export TEXT_DEFAULT="\033[39m" ' >> $ROOT_PROFILE
+echo 'export TEXT_BLACK="\033[30m"' >> $ROOT_PROFILE
+echo 'export TEXT_RED="\033[31m"' >> $ROOT_PROFILE
+echo 'export TEXT_GREEN="\033[32m"' >> $ROOT_PROFILE
+echo 'export TEXT_YELLOW="\033[33m"' >> $ROOT_PROFILE
+echo 'export TEXT_BLUE="\033[34m"' >> $ROOT_PROFILE
+echo 'export TEXT_MAGENTA="\033[35m"' >> $ROOT_PROFILE
+echo 'export TEXT_CYAN="\033[36mn"' >> $ROOT_PROFILE
+echo 'export TEXT_WHITE="\033[97m"' >> $ROOT_PROFILE
+echo 'export BACK_DEFAULT="\033[49m" ' >> $ROOT_PROFILE
+echo 'export BACK_BLACK="\033[40m"' >> $ROOT_PROFILE
+echo 'export BACK_RED="\033[41m"' >> $ROOT_PROFILE
+echo 'export BACK_GREEN="\033[42m"' >> $ROOT_PROFILE
+echo 'export BACK_YELLOW="\033[43m"' >> $ROOT_PROFILE
+echo 'export BACK_BLUE="\033[44m"' >> $ROOT_PROFILE
+echo 'export BACK_MAGENTA="\033[45m"' >> $ROOT_PROFILE
+echo 'export BACK_CYAN="\033[46mn"' >> $ROOT_PROFILE
+echo 'export BACK_WHITE="\033[107m"' >> $ROOT_PROFILE
+echo 'export RESET="\033[2J\033[0;0H"' >> $ROOT_PROFILE
+echo '' >> $PROFILE
+echo "PS1='\[\e[0;31m\]\u\[\e[m\] \[\e[1;34m\]\w\[\e[m\] \[\e[0;31m\]\$ \[\e[m\]\[\e[0;37m\]'" >> $PROFILE
+
+exit 0

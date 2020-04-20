@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Remove stuff from fresh new VM (run it once!)
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Packages managers
+APT="apt"
+YUM="yum"
+PKG=""
+
+# Find server package manager
+if which yum > /dev/null 2>&1; then
+    PKG=$YUM
+elif which apt > /dev/null 2>&1; then
+	PKG=$APT
+fi
+
+# Remove uneeded packages and configs...
+echo "Removing unwanted stuff..."
+
+# Debian or Ubuntu
+if [[ "$PKG" == "$APT" ]]; then
+	apt-get purge ppp landscape-common wpasupplicant ufw apparmor wireless-tools w3m ntfs-3g ubuntu-server mdadm apport open-iscsi iscsi cryptsetup
+	rm -rf /etc/apparmor
+	rm -rf /etc/apparmor.d
+fi
+
+# Centos or Red Hat
+if [[ "$PKG" == "$APT" ]]; then
+	yum remove wpa_supplicant chronyd postfix
+fi
+
+# Remove cron jobs
+echo "Removing unwanted cron jobs..."
+rm -f /etc/cron.d/popularity-contest
+
+# Remove dodifferent user (created just fo install)
+echo "Removing installation user..."
+userdel -f dodifferent
+rm -rf /home/dodifferent
+
+exit 0

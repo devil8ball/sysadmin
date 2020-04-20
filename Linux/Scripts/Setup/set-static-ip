@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# Set static ip
+# @ Version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Network paths and address
+NET=""
+IP="10.10.10.200"
+SIZE=${#IP}
+
+# Arguments check
+if [ -z "$1" ]; then
+    echo "Missing argument...."
+    echo "Use set-static-ip ip"
+    echo "Ex. set-static-ip 10.10.10.234"
+    exit -1
+fi
+
+# IP check
+if [ "$SIZE" -ne "12" ]; then
+  echo "Wrong ip address...";
+  echo "Ip address must be between 10.10.10.200 and 10.10.10.250"
+  exit -1
+fi
+
+# IP check
+if [[ $1 != *"10.10.10.2"* ]]; then
+  echo "Wrong ip address...";
+  echo "Ip address must be between 10.10.10.200 and 10.10.10.250"
+  exit -1
+fi
+
+echo ""
+echo "Testing $1..."
+
+RESULT="$(ping -c 4 $1 | grep transmitted)"
+
+# Ping check
+if [[ $RESULT != *"+4 error"* ]]; then
+  echo "Given IP already exist in the network...";
+  exit -1
+fi
+
+IFACE="$(ip link show | grep 2: | awk '{print $2}' | sed 's/://g')"
+
+# System OS
+CEN="CentOS"
+DEB="Debian"
+SYS=""
+
+# Find OS
+if which yum > /dev/null 2>&1; then
+    SYS=$CEN
+elif which apt > /dev/null 2>&1; then
+	SYS=$DEB
+fi
+
+# Set static ip, domain and DNS Centos or Red Hat way
+if [[ "$SYS" == "$CEN" ]]; then
+	NET="/etc/sysconfig/network-scripts/ifcfg-$IFACE"
+	UUID="$(cat $NET | grep UUID)"
+	echo "TYPE=\"Ethernet\"" > $NET
+	echo "BOOTPROTO=\"static\"" >> $NET
+	echo "DEFROUTE=\"yes\"" >> $NET
+	echo "PEERDNS=\"yes\"" >> $NET
+	echo "PEERROUTES=\"yes\"" >> $NET
+	echo "IPV4_FAILURE_FATAL=\"no\"" >> $NET
+	echo "IPV6INIT=\"no\"" >> $NET
+	echo "IPV6_AUTOCONF=\"no\"" >> $NET
+	echo "IPV6_DEFROUTE=\"no\"" >> $NET
+	echo "IPV6_PEERDNS=\"no\"" >> $NET
+	echo "IPV6_PEERROUTES=\"no\"" >> $NET
+	echo "IPV6_FAILURE_FATAL=\"no\"" >> $NET
+	echo "NAME=\"$IFACE\"" >> $NET
+	echo "UUID=\"$UUID\"" >> $NET
+	echo "DEVICE=\"$IFACE\"" >> $NET
+	echo "ONBOOT=\"yes\"" >> $NET
+	echo "IPADDR=\"$1\"" >> $NET
+	echo "NETMASK=\"255.255.255.0\"" >> $NET
+	echo "GATEWAY=\"10.10.10.1\"" >> $NET
+	echo "MTU=\"9000\"" >> $NET
+	echo "DNS1=\"10.10.10.230\"" >> $NET
+	echo "DNS2=\"10.10.10.231\"" >> $NET
+fi
+
+# Set static ip, domain and DNS Debian or Ubuntu way
+if [[ "$SYS" == "$DEB" ]]; then
+	NET="/etc/network/interfaces"
+	echo "# The loopback network interface" > $NET
+	echo "auto lo" >> $NET
+	echo "iface lo inet loopback" >> $NET
+	echo "" >> $NET
+	echo "# The primary network interface" >> $NET
+	echo "auto $IFACE" >> $NET
+	echo "iface $IFACE inet static" >> $NET
+	echo "address $1" >> $NET
+	echo "netmask 255.255.255.0" >> $NET
+	echo "mtu 9000" >> $NET
+	echo "broadcast 10.10.10.255" >> $NET
+	echo "gateway 10.10.10.1" >> $NET
+	echo "dns-nameservers 10.10.10.230" >> $NET
+	echo "dns-nameservers 10.10.10.231" >> $NET
+	echo "dns-domain dodifferent.it" >> $NET
+	echo "dns-search dodifferent.it" >> $NET
+fi
+
+# Force DNS and domain
+echo "search dodifferent.it" > /etc/resolv.conf
+echo "domain dodifferent.it" > /etc/resolv.conf
+echo "nameserver 10.10.10.230" >> /etc/resolv.conf
+echo "nameserver 10.10.10.231" >> /etc/resolv.conf
+mkdir -p /etc/resolvconf/resolv.conf.d
+echo "domain dodifferent.it" >> /etc/resolvconf/resolv.conf.d/tail
+
+exit 0

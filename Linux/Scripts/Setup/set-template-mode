@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Set the VM fo VMWare template mode
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+SCRIPT_PATH="/scripts"
+NET="/etc/network/interfaces"
+
+# Stop loggin service
+systemctl stop auditd
+systemctl stop rsyslog
+
+# Reset firewall
+$SCRIPT_PATH/iptables-reset
+
+# Clean apt
+if which apt > /dev/null 2>&1; then
+	apt-get clean
+
+# Clean yum
+if which yum > /dev/null 2>&1; then
+	yum clean all
+
+# Remove logs
+rm /var/log/*.gz
+rm /var/log/*.0
+rm /var/log/*.1
+cat /dev/null > *.log
+
+# Clear temp folder
+rm -rf /tmp/*
+
+# Delete host keys
+rm /etc/ssh/ssh_host_*
+
+# Nullify hostname
+echo "Setting hostname to null"
+cat /dev/null > /etc/hostname
+echo "127.0.0.1 localhost" > /etc/hosts
+
+# System OS
+CEN="CentOS"
+DEB="Debian"
+SYS=""
+
+# Find OS
+if which yum > /dev/null 2>&1; then
+    SYS=$CEN
+elif which apt > /dev/null 2>&1; then
+	SYS=$DEB
+
+IFACE="$(ip link show | grep 2: | awk '{print $2}' | sed 's/://g')"
+
+# Set DHCP Centos or Red Hat way
+if [[ "$SYS" == "$CEN" ]]; then
+	NET="/etc/sysconfig/network-scripts/ifcfg-$IFACE"
+	echo "NETWORKING=\"yes\"" > $NET
+	echo "DEVICE=\"$IFACE\"" >> $NET
+	echo "BOOTPROTO=\"dhcp\"" >> $NET
+	echo "ONBOOT=\"yes\"" >> $NET
+fi
+
+# Set DHCP Debian or Ubuntu way
+if [[ "$SYS" == "$DEB" ]]; then
+	NET="/etc/network/interfaces"
+	echo "# The loopback network interface" > $NET
+	echo "auto lo" >> $NET
+	echo "iface lo inet loopback" >> $NET
+	echo "" >> $NET
+	echo "# The primary network interface" >> $NET
+	echo "auto $IFACE" >> $NET
+	echo "iface $IFACE inet dhcp" >> $NET
+fi
+
+# Clear history
+echo "Clearing bash history..."
+history -w
+history -c
+
+exit 0

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Automatic installation of ColdFusion 2016
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+BASE_PATH="/scripts/installer"
+
+
+# Files
+COLDFUSION_BIN="ColdFusion_2016_WWEJ_linux64.bin"
+COLDFUSION_PROPERTIES="silet.properties"
+
+# Install apache2
+if which apt > /dev/null 2>&1; then
+    apt-get install -y apache2
+elif which yum > /dev/null 2>&1; then
+	yum install -y apache2
+fi
+
+# Install silently
+./$BASE_PATH/$COLDFUSION_BIN -f $COLDFUSION_PROPERTIES
+
+# Configure apache
+/opt/coldfusion/cfusion/runtime/bin/wsconfig -ws Apache -dir /etc/apache2/ -v
+
+exit 0

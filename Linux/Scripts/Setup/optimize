@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Optimize fresh new VM (run it once!)
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+SCRIPT_PATH="/scripts"
+SCRIPT_SETUP_PATH="/scripts/setup"
+LOCK="/etc/optimized.lock"
+SSH="/etc/ssh/sshd_config"
+
+# Check if VM is already optimized
+if [ -f $LOCK ]; then
+    echo "VM already optimized..."
+	exit 1
+fi
+
+# NFS scripts
+#echo "Adding share..."
+#mkdir /scripts
+#echo "" >> $FSTAB
+#echo "# NFS share" >> $FSTAB
+#echo "nas.dodifferent.it:/Scripts /scripts nfs defaults 0 0" >> $FSTAB
+
+# Add repo for CentOS
+if which yum > /dev/null 2>&1; then
+    $SCRIPT_SETUP_PATH/set-elrepo-repository
+
+# Remove uneeded packages and configs
+$SCRIPT_SETUP_PATH/remove-stuff
+
+# Add useful cron jobs
+$SCRIPT_SETUP_PATH/set-cron-jobs
+
+# Install useful packages
+$SCRIPT_SETUP_PATH/install-stuff
+
+# Create emergency users
+$SCRIPT_SETUP_PATH/set-emergency
+
+# Add stuff to users profiles
+$SCRIPT_SETUP_PATH/set-enviroment
+
+# Set safe rm
+$SCRIPT_SETUP_PATH/set-safe-rm
+
+# Config ntp
+$SCRIPT_SETUP_PATH/set-ntp
+
+# Config sysctl
+$SCRIPT_SETUP_PATH/disable-ipv6
+
+# Disable selinux
+$SCRIPT_SETUP_PATH/disable-selinux
+
+# SSH settings
+echo "# Cipher settings" >> $SSH
+echo "Ciphers aes128-ctr,aes192-ctr,aes256-ctr" >> $SSH
+echo "MACs hmac-sha1,umac-64@openssh.com,hmac-ripemd160" >> $SSH
+echo "" >> $SSH
+echo "# Disable reverse DNS" >> $SSH
+echo "UseDNS no" >> $SSH
+echo "" >> $SSH
+echo "# Emergency user" >> $SSH
+echo "DenyUsers emergency@!10.10.10.*" >> $SSH
+echo "Match User emergency" >> $SSH
+echo "    AllowTCPForwarding no" >> $SSH
+echo "    PasswordAuthentication yes" >> $SSH
+echo "    PubkeyAuthentication no" >> $SSH
+echo "    Banner /home/emergency/banner" >> $SSH
+
+# Config motd
+$SCRIPT_SETUP_PATH/set-motd
+
+# Log optimization
+echo "optimized on $(date)" > $LOCK
+
+exit 0

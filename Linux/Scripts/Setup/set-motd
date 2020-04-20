@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Set motd template
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+MOTD="/etc/update-motd.d"
+PROFILE="/etc/profile.d"
+CONFIG="/scripts/config"
+
+# Edit motd debian way
+if [ -d "$MOTD" ]; then
+  rm $MOTD/*
+  cp $CONFIG/00-header $MOTD
+  cp $CONFIG/90-updates-available $MOTD
+  cp $CONFIG/90-updates-available $MOTD
+  chmod 777 $MOTD/*  
+fi
+
+# Edit motd standard linux way
+if [ -d "$PROFILE" ]; then
+	rm -rf $PROFILE/welcome.sh
+	cp $CONFIG/welcome.sh $PROFILE
+	chmod 777 $PROFILE/welcome.sh 
+fi
+
+exit 0

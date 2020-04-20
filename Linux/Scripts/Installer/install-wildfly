@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Automatic installation of wildfly 11
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+BASE_PATH="/scripts/installer"
+WILDFLY_PATH="/opt/wildfly"
+JDK_PATH="/opt/jdk"
+JDK_FOLDER="jdk1.8.0_152"
+WILDFLY_FOLDER="wildfly-11.0.0.Final"
+
+# Files
+WILDFLY="wildfly-11.0.0.Final.zip"
+JDK="jdk-8u152-linux-x64.tar.gz"
+WILDFLY_BASHRC="$WILDFLY_PATH/.bashrc"
+WILDFLY_DEFAULT="/etc/default/wildfly"
+WILDFLY_STANDALONE="$WILDFLY_PATH/standalone/configuration/standalone.xml"
+WILDLFY_CFG="$WILDFLY_PATH/bin/configuration.conf"
+WILDLFY_ADD="$WILDFLY_PATH/bin/add-user.sh"
+
+# Create directory
+mkdir $WILDFLY_PATH
+mkdir $JDK_PATH
+
+# Copy files
+cp $BASE_PATH/$WILDFLY $WILDFLY_PATH
+cp $BASE_PATH/$JDK $JDK_PATH
+
+# Extract Wildfly
+pushd $WILDFLY_PATH
+unzip $WILDFLY
+mv $WILDFLY_FOLDER/* .
+rm -rf $WILDFLY_FOLDER
+popd
+
+# Exctract JDK
+pushd $JDK_PATH
+tar -xf $JDK
+mv $JDK_FOLDER/* .
+rm -rf $JDK_FOLDER
+popd
+
+# Create user ad set correct permissions and global variables
+useradd -d /opt/wildfly wildfly -c "Wildfy Daemon user" -s /bin/false
+chown -R wildfly:wildfly $WILDFLY_PATH
+chmod +x $WILDFLY_PATH/bin/*.sh
+echo "" >> $WILDFLY_BASHRC
+echo "Wildfly 11" >> $WILDFLY_BASHRC
+echo "export JAVA_HOME=\"$JDK_PATH\"" >> $WILDFLY_BASHRC
+echo "export JAVA_HOME=\"$JDK_PATH\"" >> /etc/profile
+echo "export JAVA=\"\$JAVA_HOME/bin/java\"" >> $WILDFLY_BASHRC
+echo "export JBOSS_HOME=\"$WILDFLY_PATH\"" >> $WILDFLY_BASHRC
+echo "export PATH=\$PATH:$WILDFLY_PATH/bin" >> $WILDFLY_BASHRC
+echo "JAVA_HOME=\"$JDK_PATH\"" > $WILDFLY_DEFAULT
+echo "JAVA=\"\$JAVA_HOME/bin/java\"" >> $WILDFLY_DEFAULT
+echo "JBOSS_HOME=\"$WILDFLY_PATH\"" >> $WILDFLY_DEFAULT
+echo "JBOSS_USER=wildfly" >> $WILDFLY_DEFAULT
+echo "JBOSS_MODE=standalone" >> $WILDFLY_DEFAULT
+
+# Configuration fix
+sed -i 's/127.0.0.1/0.0.0.0/g' $WILDFLY_STANDALONE
+sed -i 's/<core-environment>/<core-environment node-identifier=\"ddwildfly\">/g' $WILDFLY_STANDALONE
+sed -i 's/-Xms64m/-Xms512m/g' $WILDLFY_CFG
+sed -i 's/-Xmx256m/-Xms2048m/g' $WILDLFY_CFG
+sed -i 's/-XX:MaxMetaspaceSize=768m/-XX:MaxMetaspaceSize=256m/g' $WILDLFY_CFG
+sed -i "8i8 JAVA_HOME=\"$JDK_PATH\"" $WILDFLY_ADD
+
+# Setup service
+if [ -d /etc/init.d ]; then
+	cp $BASE_PATH/wildfly-initd /etc/init.d
+	mv /etc/init.d/wildfly-initd /etc/init.d/wildfly
+	chmod +x /etc/init.d/wildfly
+	if ! [ -x "$(command -v update-rc.d)" ]; then
+		chkconfig wildfly on
+	fi
+	if ! [ -x "$(command -v chkconfig)" ]; then
+		update-rc.d wildfly defaults
+	fi
+else
+	cp $BASE_PATH/wildfly-systemd /etc/systemd/system/
+	mv /etc/systemd/system/wildfly-systemd /etc/systemd/system/wildfly.service
+	systemctl enable wildfly.service
+fi
+
+# Add management user
+$WILDFLY_PATH/bin/add-user.sh admin d0different!
+
+exit 0

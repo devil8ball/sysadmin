@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Set ntp client configuration
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+NTP_CONFIG="/etc/ntp.conf"
+NTP_OPTS="/etc/default/ntp"
+SCRIPT_PATH="/scripts"
+SCRIPT_SETUP_PATH="/scripts/setup"
+
+# Config ntp
+echo '# Listen local only' > $NTP_CONFIG
+echo 'interface listen 127.0.0.1' >> $NTP_CONFIG
+echo 'restrict 127.0.0.1' >> $NTP_CONFIG
+echo '' >> $NTP_CONFIG
+echo '# Domain Controllers' >> $NTP_CONFIG
+echo 'Server 10.10.10.230' >> $NTP_CONFIG
+echo 'Server 10.10.10.230' >> $NTP_CONFIG
+echo '' >> $NTP_CONFIG
+echo '# Fallback' >> $NTP_CONFIG
+echo 'Server 193.204.114.232' >> $NTP_CONFIG
+echo 'Server 193.204.114.233' >> $NTP_CONFIG
+
+# Disablw query on ipv4
+echo "NTPD_OPTS='-4 -g'" > $NTP_OPTS
+
+# Resync time
+$SCRIPT_PATH/resync-time
+
+exit 0

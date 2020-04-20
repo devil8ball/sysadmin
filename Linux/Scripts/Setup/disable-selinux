@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Disable selinux
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Paths
+SELINUX="/etc/sysconfig/selinux"
+
+# Disable selinux if installed
+if [ -f "SELINUX" ]; then
+	sed -i 's/SELINUX=permissive/SELINUX=disabled/g' $SELINUX
+	sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' $SELINUX
+fi
+
+exit 0

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Enable ELRepo repository
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Repos
+KEY="https://www.elrepo.org/RPM-GPG-KEY-elrepo.org"
+REP6="http://www.elrepo.org/elrepo-release-6-8.el6.elrepo.noarch.rpm"
+REP7="http://www.elrepo.org/elrepo-release-7.0-3.el7.elrepo.noarch.rpm"
+
+VERSION="$(cat /etc/centos-release | awk '{print $4}' | cut - c1)"
+
+# Import PGP key
+rpm --import $KEY
+
+# Add given version repo
+case "$VERSION" in
+    6 ) rpm -Uvh $REP6 ;;
+	7 ) rpm -Uvh $REP7 ;;
+	* ) echo "Invalid version..." ;;
+esac
+
+exit 0
