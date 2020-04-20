@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Load an IP list and put in ban chain of iptables
+# Blacklist file must only contain lines with ip addressese, one per line
+# Always perform a backup before proceed!
+# @ Version 1.0
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Arguments check
+if [ -z $1 ]; then
+    echo -e "$RED Missing arguments... $DEFAULT"
+    echo " Use iptables-blacklist <path-to-list>"
+	echo " Ex. iptables-blacklist blacklist.list"
+    exit -1
+fi
+
+# Check if file exists
+if [ ! -f $1]; then
+	echo -e "$RED File $1 not exists... $DEFAULT"
+	exit -1
+fi
+
+# Line counter for warning and errors
+num=0
+
+# Read file line by line
+while read line
+do
+        # Skip comments
+        if [[ "$line" == "#"* ]]; then
+            continue
+            (num++))
+        fi
+
+        words="$(echo $line | wc -w)"
+
+        # Check if line is well formatted (Ex. ipaddress)
+        if [ "$words" != "1" ]; then
+                echo -e "$RED $1 contain error at line $num... $DEFAULT"
+                echo " Uncommented line (use '#' for comments) MUST contain only 1 words and be a valid ip address"
+                exit -1
+        fi
+        ban-ip $line
+        ((num++))
+done < $1
+
+exit 0
