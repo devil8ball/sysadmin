@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Fully Reset the "BAN" (banned ip) chain of firewall
+# @ Version 1.2
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Files path
+RULES="/etc/iptables/rules.v4"
+
+# Backup of old rules
+rm -f $RULES.bck
+cp $RULES $RULES.bck
+
+# Flush rules
+iptables -F BAN
+iptables -A BAN -j RETURN
+iptables -I BAN -s 1.2.3.4 -j DROP
+iptables-save > $RULES
+
+echo "BAN chain flushed and saved..."
+
+exit 0

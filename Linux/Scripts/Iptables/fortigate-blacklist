@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Create a configuration of blacklist chain of Fortigate firewall unit (loadable by cli)
+# Blacklist file must only contain lines with ip addressese, one per line
+# Always perform a backup before proceed!
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Unbannable ip
+VR="5.8.107.233"
+MI="194.244.43.21" # use wildcard to last number
+GAIA="54.194.185.171"
+BI="54.194.185.171"
+LOOPBACK="127.0"
+
+# Output file
+OUT="/tmp/fortigate.out"
+
+# Arguments check
+if [ -z $1 ]; then
+        echo "Missing arguments..."
+        echo "Use fortigate-blacklist-from-list <path-to-list>"
+		echo "Ex. fortigate-blacklist-from-list blacklist.list"
+        exit -1
+fi
+
+# Check given ip address
+ipcheck() {
+
+	# Check if given ip address is valid
+	if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		for i in 1 2 3 4; do
+			if [ $(echo "$1" | cut -d. -f$i) -gt 254 ]; then
+				echo "Malformed ip address ($1): you cannot insert a value greater than 254 in an address.."
+				exit -1
+			fi
+		done
+	else
+		echo "Malformed ip address ($1): use only ipv4 style ip address (ex. 1.1.1.1)"
+		exit -1
+	fi
+	
+	# Check if given ip address contains a 0 at the end
+	if [[ $1 == *".0" ]]; then
+		echo "Malformed ip address ($1): you cannot insert a network address..."
+		exit -1
+	fi
+	
+	# Check if given ip address is a local address
+	if [[ $1 == 10.* || $1 == 192.168.* || $1 == 172.* ]]; then
+		echo "You're try to ban a local ip address ($1): this is probably NOT what you want!"
+		exit -1
+	fi
+	
+	# Check if given ip address is the Dodifferent Verona public ip
+	if [[ $1 == $VR ]] ; then
+		echo "You're try to ban Dodifferent public ip ($1): this is probably NOT what you want!"
+		exit -1
+	fi
+	
+	# Check if given ip address is the Dodifferent Milano public ip
+	if [[ $1 == $MI ]] ; then
+		echo "You're try to ban Dodifferent public ip ($1): this is probably NOT what you want!"
+		exit -1
+	fi
+	
+	# Check if given ip address is the Biserver public ip
+	if [[ $1 == $BI ]] ; then
+		echo "You're try to ban Biserver public IP ($1): this is probably NOT what you want!"
+		exit -1
+	fi
+	
+	# Check if given ip address is the Gaia public ip
+	if [[ $1 == $GAIA ]] ; then
+		echo "You're try to ban Gaia server public ip ($1): this is probably NOT what you want!"
+		exit -1
+	fi
+	
+	# Check if given ip address is the loopback address
+	if [[ $1 == "$LOOPBACK"* ]] ; then
+		echo "You're try to ban the loopback ip address ($1): this is probably NOT what you want!"
+			exit -1
+	fi
+}
+
+# Line counter for warning and errors
+num=0
+
+echo "config firewall address" > $OUT
+
+# Read file line by line
+while read line
+do
+        # Skip comments
+        if [[ "$line" == "#"* ]]; then
+                continue
+                ((num++))
+        fi
+
+        words="$(echo $line | wc -w)"
+
+        # Check if line is well formatted (Ex. ipaddress)
+        if [ "$words" != "1" ]; then
+                echo "$1 contain error at line $num..."
+                echo "Uncommented line (use '#' for comments) MUST contain only 1 words and be a valid ip address"
+                exit -1
+        fi
+		ipcheck $line
+        # Parse line
+		echo -e "\t edit \"BLACKLIST-$line\"" >> $OUT
+		echo -e "\t\t set comment \"$line blacklist ip\"" >> $OUT
+		echo -e "\t\t set color 1" >> $OUT
+		echo -e "\t\t set subnet $line 255.255.255.255" >> $OUT
+		echo -e "\t next" >> $OUT
+        ((num++))
+done < $1
+
+echo "" >> $OUT
+echo "config firewall address" >> $OUT
+echo -e "\t edit \"BLACKLIST\"" >> $OUT
+
+# Line counter for warning and errors
+num=0
+
+# Read file line by line
+while read line
+do
+        # Skip comments
+        if [[ "$line" == "#"* ]]; then
+                continue
+                ((num++))
+        fi
+
+        # Parse line
+		echo -e "\t\t set member \"BLACKLIST-$line\"" >> $OUT
+
+        ((num++))
+done < $1
+
+echo -e "\t next" >> $OUT
+
+echo "Script generated in $OUT..."
+
+exit 0
