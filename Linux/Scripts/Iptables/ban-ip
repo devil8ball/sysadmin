@@ -1,0 +1,141 @@
+#!/bin/bash
+
+# Ban given ip address (banned ip will not be able to connect to the server in ANY way)
+# This scripts support only IPv4 style address or DNS name
+# Iptables MUST have the BAN chain cofigured (see set-firewall script for detail)
+# @ Version 2.0
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Files path
+RULES="/etc/iptables/rules.v4"
+LIST="/etc/iptables/ban.list"
+
+# Unbannable IPs list
+IP=( "151.69.124.94" "54.194.253.39" "54.194.185.171" "54.229.199.218" "86.44.58.189" "209.133.104.41" "92.246.34" );
+
+# Public ip address
+PUBLIC="151.69.124.90"
+
+# Local subnet
+LOCAL="10.10.10"
+
+# Standard loopback
+LOOPBACK="127.0"
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Arguments check
+if [ -z $1 ]; then
+    echo -e "$RED Missing arguments... $DEFAULT"
+    echo " Use ban-ip <ipv4 address>"
+	echo " Ex. ban-ip 1.1.1.1"
+    exit -1
+fi
+
+# Resolve DNS from given access if necessary
+if [[ $1 == *[A-z]* ]]; then
+	ip="$(host $1 | awk '{print $4}' | tail -n1)"
+	if [[ $ip == *"found:"* ]]; then
+		echo -e "$RED Invalid or unresolvable hostname... $DEFAULT"
+		exit -1
+	fi
+	echo -e " $GREEN$1$DEFAULT resolved as $GREEN$ip $DEFAULT..."
+fi
+
+# Check if given ip address is valid
+if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+	for i in 1 4; do
+		if [ $(echo "$1" | cut -d. -f$i) -gt 254 ]; then
+			echo -e "$RED Malformed ip address... $DEFAULT"
+			echo " You cannot insert a value greater than 254 in an address.."
+			exit -1
+		fi
+	done
+fi
+
+# Check if given ip address contains a 0 at the end
+if [[ $1 == *".0" ]]; then
+	echo -e "$RED Malformed ip address... $DEFAULT"
+	echo " You cannot insert a network address..."
+	exit -1
+fi
+
+# Check if given ip address start with 0
+if [[ $1 == "0."* ]]; then
+	echo -e "$RED Malformed ip address... $DEFAULT"
+	echo " You cannot insert an address like 0.x.x.x..."
+	exit -1
+fi
+
+# Check if given ip address is the yout public ip
+if [[ $1 == $PUBLIC ]] ; then
+    echo -e "$RED You're try to ban your public IP... $DEFAULT"
+	echo -e " This is probably $RED NOT $DEFAULT what you want!"
+	exit -1
+fi
+
+# Check for unbannable list
+for i in "${IP[@]}"
+do
+	if [[ $1 == "$i"* ]] ; then
+		echo -e "$RED You're try to ban an unbannable ip... $DEFAULT"
+        echo -e " This is probably $RED NOT $DEFAULT what you want!"
+        exit -1
+	fi
+done
+
+# Check if given ip address is a local ip
+if [[ $1 == "$LOCAL"* ]] ; then
+    echo -e "$RED You're try to ban a local ip address... $DEFAULT"
+    echo -e " This is probably $RED NOT $DEFAULT what you want!"
+    exit -1
+fi
+
+# Check if given ip address is the loopback address
+if [[ $1 == "$LOOPBACK"* ]] ; then
+    echo -e "$RED You're try to ban the loopback ip address...$DEFAULT"
+    echo -e " This is probably $REDNOT$DEFAULT what you want!"
+    exit -1
+fi
+
+# Check if ip is alerady listed
+if cat $LIST | grep -q "$1"; then
+    echo -e "$YELLOW $1 is already banned...$DEFAULT"
+    exit -1
+fi
+
+# Check if chain "BAN" exist
+CHAIN="$(iptables -n --list BAN | wc -l)"
+if [ "$CHAIN" -lt "3" ]; then
+	echo -e "$RED Missing BAN chain... $DEFAULT"
+	exit -1
+fi
+
+# Backup of old rules
+rm -f $RULES.bck
+cp $RULES $RULES.bck
+
+# Add new ip to list and to firewall rules
+echo $1 >> $LIST
+iptables -I BAN -s $1 -j DROP
+iptables-save > $RULES
+
+echo -e "$GREEN Rules for $1 applied and saved... $DEFAULT"
+
+exit 0
