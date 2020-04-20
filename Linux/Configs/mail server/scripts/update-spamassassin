@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sa-update --allowPlugins
+sa-compile
+sl-learn /home/*/Maildir/.Spam

@@ -1,0 +1,3 @@
+PATH=/bin:/usr/bin
+SHELL=/bin/bash
+LOGFILE=/var/log/procmail.log

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+VIRTUAL="/etc/postfix/virtual"
+
+if [ -z $1 ]; then
+	echo "Missing arguments..."
+	echo "Use new-mail-user username"
+	exit -1
+fi
+
+if id "$1" >/dev/null 2>&1; then
+        echo "User exist, skipping creating new one..."
+else
+	useradd -m -s /bin/nologin $1
+        echo "Created user $1 with minimal permission..."
+fi
+
+cd /home/$1
+mkdir -p Maildir/{cur,new,tmp}
+mkdir -p Maildir/.Drafts/{cur,new,tmp}
+mkdir -p Maildir/.Sent/{cur,new,tmp}
+mkdir -p Maildir/.Trash/{cur,new,tmp}
+mkdir -p Maildir/.Spam/{cur,new,tmp}
+chmod 0750 Maildir/{cur,new,tmp}
+chmod 0750 Maildir/.Drafts/{cur,new,tmp}
+chmod 0750 Maildir/.Sent/{cur,new,tmp}
+chmod 0750 Maildir/.Trash/{cur,new,tmp}
+chmod 0750 Maildir/.Spam/{cur,new,tmp}
+chown -R $1:mail Maildir
+passwd $1
+
+echo "MAILDIR=/home/$1/Maildir" > /home/$1/.procmailrc
+echo "DEFAULT=/home/$1/Maildir/inbox" >> /home/$1/.procmailrc
+echo "" >> /home/$1/.procmailrc
+echo ":0  # Spam rulese" >> /home/$1/.procmailrc
+echo "* ^X-Spam-Status: Yes" >> /home/$1/.procmailrc
+echo ".Spam/" >> /home/$1/.procmailrc
+echo "" >> /home/$1/.procmailrc
+echo "# Default" >> /home/$1/.procmailrc
+echo ":0" >> /home/$1/.procmailrc
+echo "/home/$1/Maildir/inbox" >> /home/$1/.procmailrc
+
+alias="$(cat $VIRTUAL | grep $1 | wc -l)"
+
+if [ "$alias" -eq "0" ]; then
+	echo "$1@ziviani.info $1@localhost" > $VIRTUAL
+	echo "Created virtual account for $1"
+else
+	echo "Virtual account for $1 already exist..."
+fi
+
+postmap $VIRTUAL
+
+exit 0
