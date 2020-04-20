@@ -1,0 +1,85 @@
+default vesamenu.c32
+prompt 0
+timeout 300
+ontimeout local
+
+menu title XXX PXE Boot Server
+menu include pxelinux.cfg/graphics.conf
+
+label Debian 9.2 x64 server install
+    MENU LABEL Debian 9.2 x64 server install
+    kernel debian-installer/linux
+    append initrd=debian-installer/initrd.gz quiet locale=it_IT.UTF-8 console-setup/layoutcode=it domain=yourdomain.com hostname=debian url=http://x.x.x.x/debian/debian.ks
+
+label CentOS 7.4 x64 server install
+    MENU LABEL CentOS 7.4 x64 server install
+    kernel centos-installer/vmlinuz
+    append initrd=centos-installer/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=centos7 ks=http://x.x.x.x/centos/centos7.ks
+
+label CentOS 7.4 x64 + Wildfly 11 server install
+    MENU LABEL CentOS 7.4 x64 + Wildfly 11 server install
+    kernel centos-installer/vmlinuz
+    append initrd=centos-installer/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=wildfly ks=http://x.x.x.x/centos/centos7-wildfly.ks
+
+label CentOS 7.4 x64 + Coldfusion 11 server install
+    MENU LABEL CentOS 7.4 x64 + Coldfusion 11  server install
+    kernel centos-installer/vmlinuz
+    append initrd=centos-installer/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=coldfusion ks=http://x.x.x.x/centos/centos7-coldfusion.ks
+
+label CentOS 7.4 x64 + Zimbra 8.7.11 server install
+    MENU LABEL CentOS 7.4 x64 + Zimbra 8.7.11  server install
+    kernel centos-installer/vmlinuz
+    append initrd=centos-installer/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=coldfusion ks=http://x.x.x.x/centos/centos7-zimbra.ks
+
+label Oracle Linux 7.4 x64 server install
+    MENU LABEL  Oracle Linux 7.4 x64 server install
+    kernel oracle-installer/vmlinuz
+    append initrd=oracle-installer/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=oracle7 ks=http://x.x.x.x/centos/oracle7.ks
+
+label CentOS 6.9 x64 server install
+    MENU LABEL CentOS 6.9 x64 server install
+    kernel centos-installer-old/vmlinuz
+    append initrd=centos-installer-old/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=centos6 ks=http://x.x.x.x/centos/centos6.ks
+
+label CentOS 6.9 x64 + PostgreSQL server install
+    MENU LABEL CentOS 6.9 x64 + PostgreSQL server install
+    kernel centos-installer-old/vmlinuz
+    append initrd=centos-installer-old/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=psql ks=http://x.x.x.x/centos/centos6-psql.ks
+
+label Oracle Linux 6.9 x64 server install
+    MENU LABEL Oracle Linux 6.9 x64 server install
+    kernel oracle-installer-old/vmlinuz
+    append initrd=oracle-installer-old/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=oracle6 ks=http://x.x.x.x/centos/oracle6.ks
+
+label Oracle Linux 6.9 x64 + Oracle 12c server install
+    MENU LABEL Oracle Linux 6.9 x64 + Oracle 12c server install
+    kernel oracle-installer-old/vmlinuz
+    append initrd=oracle-installer-old/initrd.img quiet locale=it_IT.UTF-8 console-setup/layoutcode=it hostname=oracle6 ks=http://x.x.x.x/centos/oracle6-12c.ks
+
+label Fedora live
+    MENU LABEL Fedora live
+    kernel fedora-live/vmlinuz
+    append initrd=fedora-live/initrd.img quiet root=live:http://x.x.x.x/fedora/squashfs.img ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0
+
+label GParted live
+    MENU LABEL GParted live
+    kernel gparted/vmlinuz
+    append initrd=gparted/initrd.img quiet boot=live config components union=overlay username=user noswap noeject ip= vga=788 locales=it_IT.UTF-8 keyboard-layouts=it gl_batch fetch=http://x.x.x.x/gparted/filesystem.squashfs
+
+label Clonezilla live
+    MENU LABEL Clonezilla live
+    kernel clonezilla/vmlinuz
+    append initrd=clonezilla/initrd.img quiet boot=live username=user union=overlay config components quiet noswap edd=on nomodeset nodmraid locales= keyboard-layouts= ocs_live_run="ocs-live-general" ocs_live_extra_param="" ocs_live_batch=no net.ifnames=0 nosplash noprompt fetch=http://x.x.x.x/clonezilla/filesystem.squashfs
+
+label Boot Rescue live
+    MENU LABEL Boot Rescue live
+    kernel gparted/vmlinuz
+    append initrd=gparted/initrd.img boot=live config components union=overlay noswap noeject quiet fetch=http://x.x.x.x/bootrepair/filesystem.squashfs
+
+label Memtest86+
+    MENU LABEL Memtest86+
+    kernel memtest/memtest86+
+	
+laber Local boot
+    MENU LABEL Boot local hard drive
+    LOCALBOOT 0
