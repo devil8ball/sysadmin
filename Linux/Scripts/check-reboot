@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Check if a reboot is required and notify sysadmin
+# @version 1.4
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Paths
+REBOOT="/var/run/reboot-required"
+
+# Global variables
+HOST="$(cat /etc/hostname)"
+IP="$( ifconfig | grep inet | head -n 1 | awk '{print $2}' | sed 's/addr://g' | sed 's/inet://g')"
+
+# Mail texts
+SUBJECT="Riavvio richiesto - $HOST"
+BODY="Gentile Amministratore,<br><br>Il server <b>$HOST</b> (ip locale: $IP) richiede un riavvio."
+
+if [ -f $REBOOT ]; then
+	echo -e "$RED System reboot required... $DEFAULT"
+	echo "$BODY" | mailx -a 'Content-Type: text/html' -a 'From: logwatch@dodifferent.it' -a 'X-Priority: 1' -a 'X-MSMail-Priority: High' -s "$SUBJECT" sistemi@dodifferent.it
+else
+	echo -e "$GREEN Reboot not required... $DEFAULT"
+fi
+
+exit 0

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Check sudo successful auth
+# @ Version 1.1
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Auth log file (debian)
+AUTH="/var/log/auth.log"
+
+# Command to check
+CMD="sudo"
+
+# Pattern to search
+PATTERN="opened"
+
+# Search and print info
+cat $AUTH | grep $CMD | grep $PATTERN | awk 'BEGIN { FS = " " } {print $1 $2 $3 $13}'
+
+exit 0
