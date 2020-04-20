@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Show all listen port on server
+# @ Version 1.0
+# © 2018 Leonardo Ziviani all rights reserved
+
+netstat -plnt
+
+exit 0

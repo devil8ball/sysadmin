@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Join Active Directory
+# In case of error, check network and dns settings, then use leave-domain && join-domain
+# @ Version 1.3
+# © 2017 Leonardo Ziviani all rights reserved
+
+# SSSD config files
+SSSD="/etc/sssd/sssd.conf"
+
+# Get hostname
+HOST="$(cat /etc/hostname)"
+HOSTNAME=${HOST^^}
+
+# Init kerberos ticket
+sudo kinit administrator@DODIFFERENT.IT
+
+# Leave old domain
+/scripts/ad/leave-domain
+
+# Join domain
+realm --verbose join dodifferent.it --user-principal=$HOSTNAME/administrator@DODIFFERENT.IT --unattended
+
+# Fix SSSD config
+if [ -f $SSSD.new ]; then
+	rm -f $SSSD
+	mv $SSSD.new $SSSD
+else
+	sed -i 's/access_provider = simple/access_provider = ad/g' /etc/sssd/sssd.conf
+fi
+service sssd restart
+
+# Add automatic home creation for new users
+sed -i 's/# end of pam-auth-update config/session required pam_mkhomedir.so skel=\/etc\/skel\/ umask=0077/g' /etc/pam.d/common-session 
+sed -i "s/account [default=bad success=ok user_unknown=ignore]    pam_sss.so/#account [default=bad success=ok user_unknown=ignore]    pam_sss.so/g"
+echo "# end of pam-auth-update config" >> /etc/pam.d/common-session
+
+# Add sudo privileges
+adduser admin-ziviani sudo
+adduser admin-daronco sudo
+
+exit 0

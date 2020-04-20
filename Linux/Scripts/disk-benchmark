@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Syntetich disk I/O benchmark
+# @ Version 1.1
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Adjust parameters for different disk
+DISK="/dev/sda"
+OUT="/tmp/output"
+
+echo "WRITE SPEED:"
+dd if=/dev/zero of=$OUT conv=fdatasync bs=384k count=1k; rm -f $OUT
+echo ""
+echo "READ SPEED:"
+hdparm -t /dev/sda
+
+exit 0 

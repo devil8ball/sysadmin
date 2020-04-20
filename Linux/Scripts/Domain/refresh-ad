@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Remove SSSD daemon cache and restart services
+# @ Version 1.0
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Flush cache
+sss_cache -E
+
+# Stop service
+service sssd stop
+
+# Remove cache files
+rm -f /var/lib/sss/db/*
+rm -f /var/lib/sss/mc/*
+
+# Start service
+service sssd start
+
+exit 0

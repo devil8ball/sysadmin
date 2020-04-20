@@ -1,0 +1,171 @@
+#!/bin/bash
+
+# Calculate address range from given ip address with mask
+# @ Version 1.0
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Global variables
+MASK="32"
+MASK_BIT="8"
+MASK_MAX_DEC="255"
+MASK_MAX_BIN="11111111"
+MASK_MIN_DEC="0"
+MASK_MIN_BIN="00000000"
+
+# Get network address
+function network {
+	ip=$1
+	counter=$2
+	for i in {0..7}
+        do
+			pos=$(($MASK_BIT - $counter + 1))
+			if [ $counter -lt 0 ]; then
+				break;
+			fi
+			counter=$(($counter - 1))
+			ip=$(echo $ip | sed "s/./0/${pos}")            
+        done  
+	
+	echo $ip	
+}
+
+# Get broadcast address
+function broadcast {
+	ip=$1
+	counter=$2
+	for i in {0..7}
+        do
+			pos=$(($MASK_BIT - $counter + 1))
+			if [ $counter -lt 0 ]; then
+				break;
+			fi
+			counter=$(($counter - 1))
+			ip=$(echo $ip | sed "s/./1/${pos}")            
+        done  
+	
+	echo $ip	
+}
+
+# Add zeroes to match 8 bit mask
+function add-zeroes {
+	length=$(echo ${#1}) 
+	missing=$(($MASK_BIT - $length))
+	out=$1
+	if [ $missing -ne 0 ]; then
+		for i in `seq 1 $missing`;
+        do
+            out="0$out"
+        done    
+	fi
+	
+	echo $out
+}
+
+# Arguments check
+if [ -z $1 ]; then
+	echo -e "$RED Missing ipv4 address... $DEFAULT"
+    echo " Use ip-mask-calculator <ipv4 address> <mask>"
+	echo " Ex. ban-ip 1.1.1.1 24"
+    exit -1
+fi
+
+# Arguments check
+if [ -z $2 ]; then
+	echo -e "$RED Missing netmask... $DEFAULT"
+    echo " Use ip-mask-calculator <ipv4 address> <mask>"
+	echo " Ex. ban-ip 1.1.1.1 24"
+    exit -1
+fi
+
+# Check if given ip address is valid
+if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+	for i in 1 2 3 4; do
+		if [ $(echo "$1" | cut -d. -f$i) -gt 254 ]; then
+			echo -e "$RED Malformed ip address... $DEFAULT"
+			echo " You cannot insert a value greater than 254 in an address.."
+			exit -1
+		fi
+	done
+else
+	echo -e "$RED Malformed ip address... $DEFAULT"
+	echo " Use only ipv4 style ip address"
+	echo " Ex. 1.1.1.1"
+	exit -1
+fi
+
+# Check if given ip address contains a 0 at the end
+if [[ $1 == *".0" ]]; then
+	echo -e "$RED Malformed ip address... $DEFAULT"
+	echo " You cannot insert a network address..."
+	exit -1
+fi
+
+# Check if given mask is smaller than 24
+if [ $2 -lt 24 ]; then
+	echo -e "$RED Wrong mask number... $DEFAULT"
+	echo " Mask must be between 2 and 30"
+	exit -1
+fi
+
+# Check if given mask is bigger than 30
+if [ $2 -gt 30 ]; then
+	echo -e "$RED Wrong mask number... $DEFAULT"
+	echo "Mask must be between 2 and 30"
+	exit -1
+fi
+
+# Install missing package if needed
+if [ $(dpkg-query -W -f='${Status}' bc 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+	echo "$YELLOW Installing missing package... $DEFAULT"
+	apt-get -y install bc
+fi
+
+# Get network range for broadcast and net address calculation
+range=$(($MASK - $2))
+
+# Split ip in 4 bas 10 numbers
+ip1_dec=$(echo "$1" | cut -d. -f1)
+ip2_dec=$(echo "$1" | cut -d. -f2)
+ip3_dec=$(echo "$1" | cut -d. -f3)
+ip4_dec=$(echo "$1" | cut -d. -f4)
+
+# Convert base 10 split in base 2
+ip1_bin=$(echo "obase=2; $ip1_dec" | bc)
+ip2_bin=$(echo "obase=2; $ip2_dec" | bc)
+ip3_bin=$(echo "obase=2; $ip3_dec" | bc)
+ip4_bin=$(echo "obase=2; $ip4_dec" | bc)
+
+# Add 0s to match 8 bit length
+ip1_bin=$(add-zeroes $ip1_bin)
+ip2_bin=$(add-zeroes $ip2_bin)
+ip3_bin=$(add-zeroes $ip3_bin)
+ip4_bin=$(add-zeroes $ip4_bin)
+
+# Calculate broadcast and network address
+broadcast_bin=$(broadcast $ip4_bin $range)
+network_bin=$(network $ip4_bin $range)
+
+# Convert in base 10
+broadcast_dec=$(echo "ibase=2; $broadcast_bin" | bc)
+network_dec=$(echo "ibase=2; $network_bin" | bc)
+
+# Get minumum and maximum usable ips
+min=$(($network_dec + 2))
+max=$(($broadcast_dec - 1))
+
+clear
+echo ""
+echo -e " Subnet: \t $GREEN$1$DEFAULT / $YELLOW$2$DEFAULT"
+echo -e " Network: \t $GREEN$ip1_dec.$ip2_dec.$ip3_dec.$YELLOW$network_dec$DEFAULT"
+echo -e " Broadcast: \t $GREEN$ip1_dec.$ip2_dec.$ip3_dec.$YELLOW$broadcast_dec$DEFAULT"
+echo -e " Range: \t $GREEN$ip1_dec.$ip2_dec.$ip3_dec.$YELLOW$min$DEFAULT - $YELLOW$max$DEFAULT"
+echo ""
+
+exit 0

@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Active Directory password expiration check and notify
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Temp files
+FILE="/tmp/ldap.list"
+LOG="/tmp/ldap.log"
+TMP="/tmp/sort.list"
+
+# One day in timestamp
+ONE_DAY=$(date -d "+1 days" +%s)
+
+# Five day in timestamp
+FIVE_DAY=$(date -d "+5 days" +%s)
+
+# Ten day in timestamp
+TEN_DAY=$(date -d "+10 days" +%s)
+
+# Max password age (90 days in MS timestamp)
+MAX_DAY=77760000000000
+
+# Clear temp file
+rm -rf $FILE
+rm -rf $LOG
+
+# Query for user with password expiration and put result in a temp file
+ldapsearch -h dc1.dodifferent.it -b "cn=Users,dc=dodifferent,dc=it" -x -D "cn=Web Password,cn=Users,dc=dodifferent,dc=it" -w '%)j2pNbAE&b!' -LLL '(&(objectClass=user)(userAccountControl=512))' mail pwdLastSet > $FILE
+chmod 777 $FILE
+
+# Clean file from unwanted stuff
+sed -i '/dn: CN/d' $FILE                                # Remove CN: entries
+sed -i 's/pwdLastSet: //g' $FILE                        # Remove password field name
+sed -i 's/mail: //g' $FILE                              # Remove mail field name
+sed -i '/^\s*$/d' $FILE                                 # Remove empty lines
+
+# Mail strings
+SUBJECT="Scadenza password"
+BODY_PRE="Gentile utente,\n\nLa tua password di rete scadrà fra"
+BODY_POST=". \nPer modificarla, collegati al link:\n https://password.dodifferent.it \n\nCordialmente,\nSistemi Dodifferent"
+
+# Read list line by line and perform check for every accounts
+while read line
+do
+        if [ -z "$ms_ts" ]; then
+                ms_ts=$line
+        elif [ -z "$mail" ]; then
+                mail=$line
+                expire=$(($ms_ts + $MAX_DAY))
+				if [[ $mail == 1* ]]; then
+					continue
+				fi
+                ts=$(date -d "01/01/1601 UTC $(let expire=expire/10000000; echo $expire) seconds" +%s)
+                if [ "$ts" -lt "$ONE_DAY" ]; then
+                        #echo "$BODY_PRE 1 giorno$BODY_POST" | mail -r  password@dodifferent.it -s "$SUBJECT" "$mail"
+						echo -e "$mail \t\t\t Password will expire in 1 day" >> $LOG
+                elif [ "$ts" -lt "$FIVE_DAY" ]; then
+                        #echo "$BODY_PRE 5 giorni$BODY_POST" | mail -r  password@dodifferent.it -s "$SUBJECT" "$mail"
+						echo -e "$mail \t\t\t Password will expire in 5 days" >> $LOG
+                elif [ "$ts" -lt "$TEN_DAY" ]; then
+                        #echo "$BODY_PRE 10 giorni$BODY_POST" | mail -r  password@dodifferent.it -s "$SUBJECT" "$mail"
+						echo -e "$mail \t\t\t Password will expire in 10 days" >> $LOG
+                else
+                        echo -e "$mail \t\t\t Password will expire on $(date -d @$ts)" >> $LOG
+                fi
+                ms_ts=""
+                mail=""
+        fi
+done < $FILE
+
+# Clear temp file
+#rm -rf $FILE
+
+# Sort log file
+cat $LOG | sort > $TMP
+cat $TMP > $LOG
+rm -rf $TMP
+
+# Debug
+clear
+cat $LOG
+
+# Send result to administrators
+#cat $LOG | mail -r  password@dodifferent.it -s "Check scadenza password" "sistemi@dodifferent.it"
+rm -rf $LOG
+
+exit 0

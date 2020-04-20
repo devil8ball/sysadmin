@@ -1,0 +1,162 @@
+#!/bin/bash
+
+# Basic setup for Active Directory integration
+# Service configured: krb5, sssd, realmd
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Config files
+REALMD="/etc/realmd.conf"
+KRB="/etc/krb5.conf"
+SSSD="/etc/sssd/sssd.conf"
+
+# Get system info from lsb-release
+OS=$(cat /etc/*-release | head -n1 | sed 's/"//g' | sed 's/PRETTY_NAME=//g')
+VERS=$(cat /etc/*-release | head -n3 | tail -n1 | sed 's/"//g' | sed 's/VERSION_ID=//g')
+
+# Install needed package
+apt-get -y install dnsutils realmd sssd sssd-tools libpam-sss libnss-sss samba-common krb5-user packagekit samba-common-bin samba-libs adcli ntp
+
+# Setings for realmd
+echo "[users]" > $REALMD
+echo "default-home = /home/DODIFFERENT/%U" >> $REALMD
+echo "default-shell = /bin/bash" >> $REALMD
+echo "" >> $REALMD
+echo "[active-directory]" >> $REALMD
+echo "default-client = sssd" >> $REALMD
+echo "os-name = $OS" >> $REALMD
+echo "os-version = $VERS" >> $REALMD
+echo "" >> $REALMD
+echo "[service]" >> $REALMD
+echo "automatic-install = no" >> $REALMD
+echo "" >> $REALMD
+echo "[dodifferent.it]" >> $REALMD
+echo "fully-qualified-names = no" >> $REALMD
+echo "automatic-id-mapping = yes" >> $REALMD
+echo "user-principal = yes" >> $REALMD
+echo "manage-system = no" >> $REALMD
+
+# Settings for kerberos
+echo "[libdefaults]" > $KRB
+echo "        default_realm = DODIFFERENT.IT" >> $KRB
+echo "        dns_lookup_realm = true" >> $KRB
+echo "        dns_lookup_kdc = true" >> $KRB
+echo "        ticket_lifetime = 24h" >> $KRB
+echo "        renew_lifetime = 7d" >> $KRB
+echo "        forwardable = true" >> $KRB
+echo "" >> $KRB
+echo "# The following krb5.conf variables are only for MIT Kerberos." >> $KRB
+echo "        krb4_config = /etc/krb.conf" >> $KRB
+echo "        krb4_realms = /etc/krb.realms" >> $KRB
+echo "        kdc_timesync = 1" >> $KRB
+echo "        ccache_type = 4" >> $KRB
+echo "        forwardable = true" >> $KRB
+echo "        proxiable = true" >> $KRB
+echo "" >> $KRB
+echo "# The following encryption type specification will be used by MIT Kerberos" >> $KRB
+echo "# if uncommented.  In general, the defaults in the MIT Kerberos code are" >> $KRB
+echo "# correct and overriding these specifications only serves to disable new" >> $KRB
+echo "# encryption types as they are added, creating interoperability problems." >> $KRB
+echo "#" >> $KRB
+echo "# Thie only time when you might need to uncomment these lines and change" >> $KRB
+echo "# the enctypes is if you have local software that will break on ticket" >> $KRB
+echo "# caches containing ticket encryption types it doesn't know about (such as" >> $KRB
+echo "# old versions of Sun Java)." >> $KRB
+echo "" >> $KRB
+echo "#       default_tgs_enctypes = des3-hmac-sha1" >> $KRB
+echo "#       default_tkt_enctypes = des3-hmac-sha1" >> $KRB
+echo "#       permitted_enctypes = des3-hmac-sha1" >> $KRB
+echo "" >> $KRB
+echo "# The following libdefaults parameters are only for Heimdal Kerberos." >> $KRB
+echo "        v4_instance_resolve = false" >> $KRB
+echo "        v4_name_convert = {" >> $KRB
+echo "                host = {" >> $KRB
+echo "                        rcmd = host" >> $KRB
+echo "                        ftp = ftp" >> $KRB
+echo "                }" >> $KRB
+echo "                plain = {" >> $KRB
+echo "				        something = something-else" >> $KRB
+echo "                }" >> $KRB
+echo "        }" >> $KRB
+echo "        fcc-mit-ticketflags = true" >> $KRB
+echo "" >> $KRB
+echo "[realms]" >> $KRB
+echo "        DODIFFERENT.IT = {" >> $KRB
+echo "                kdc = DC1.DODIFFERENT.IT" >> $KRB
+echo "                kdc = DC2.DODIFFERENT.IT" >> $KRB
+echo "                admin_server = DC1.DODIFFERENT.IT" >> $KRB
+echo "        }" >> $KRB
+echo "" >> $KRB
+echo "[domain_realm]" >> $KRB
+echo "        .dodifferent.it = DODIFFERENT.IT" >> $KRB
+echo "        dodifferent.it = DODIFFERENT.IT" >> $KRB
+echo "" >> $KRB
+echo "[login]" >> $KRB
+echo "        krb4_convert = true" >> $KRB
+echo "        krb4_get_tickets = false" >> $KRB
+echo "" >> $KRB
+
+# Settings for sssd
+echo "[sssd]" > $SSSD
+echo "domains = dodifferent.it" >> $SSSD
+echo "config_file_version = 2" >> $SSSD
+echo "services = nss, pam" >> $SSSD
+echo "ad_gpo_access_control = enforcing" >> $SSSD
+echo "ldap_access_order = expire" >> $SSSD
+echo "ldap_account_expire_policy = ad" >> $SSSD
+echo "ad_hostname = $(hostname).dodifferent.it" >> $SSSD
+echo "" >> $SSSD
+echo "[nss]" >> $SSSD
+echo "filter_groups = root,sudo,Server RAS e IAS,WinRMRemoteWMIUsers__,Cert Publishers,Computer del dominio,Controller di dominio,Controller di dominio clonabili,Controller di dominio di sola lettura,Controller di dominio di sola lettura organizzazione,DnsAdmins,DnsUpdateProxy,Protected Users,Authenticated Users,interactive,guests,Administrators,Domain Users,Domain Admins,Enterprise Admins,Domain Guests,Proprietari autori criteri di gruppo,Utenti Desktop remoto,Ogg. autorizzati a replica passw. in controller sola lettura,Ogg. non autoriz. a replica passw. in controller sola lettura,Proprietari autori criteri di gruppo,Schema Admins,Users" >> $SSSD
+echo "filter_users = root,administrator,taccount,tadmins,krbtgt,wpassword,guest,_apt,apt,backup,bin,daemon,games,gnats,irc,list,lp,mail,man,messagebus,news,nobody,ntp,proxy,root,smmsp,smmta,sshd,sssd,statd,sync,sys,syslog,systemd-bus-proxy,systemd-network,systemd-resolve,systemd-timesync,uucp,uuidd,www-data" >> $SSSD
+echo "filter_users_in_groups = True" >> $SSSD
+echo "" >> $SSSD
+echo "[domain/dodifferent.it]" >> $SSSD
+echo "#debug_level = 6" >> $SSSD
+echo "enumerate = false" >> $SSSD
+echo "ldap_group_nesting_level = 1" >> $SSSD
+echo "ad_domain = dodifferent.it" >> $SSSD
+echo "dns_discovery_domain = dodifferent.it" >> $SSSD
+echo "dyndns_update = true" >> $SSSD
+echo "lookup_family_order = ipv4_only" >> $SSSD
+echo "krb5_realm = DODIFFERENT.IT" >> $SSSD
+echo "krb5_keytab = /etc/krb5.keytab" >> $SSSD
+echo "realmd_tags = Dodifferent S.r.l." >> $SSSD
+echo "cache_credentials = True" >> $SSSD
+echo "id_provider = ad" >> $SSSD
+echo "krb5_store_password_if_offline = True" >> $SSSD
+echo "ldap_id_mapping = True" >> $SSSD
+echo "use_fully_qualified_names = False" >> $SSSD
+echo "fallback_homedir = /home/DODIFFERENT/%u" >> $SSSD
+echo "shell_fallback = /bin/bash" >> $SSSD
+echo "default_shell = /bin/bash" >> $SSSD
+echo "access_provider = ad" >> $SSSD
+echo "auth_provider = ad" >> $SSSD
+echo "ldap_schema = ad" >> $SSSD
+echo "ldap_schema = rfc2307bis" >> $SSSD
+echo "ldap_force_upper_case_realm = true" >> $SSSD
+echo "ldap_search_base = DC=dodifferent,DC=it" >> $SSSD
+echo "" >> $SSSD
+echo "# Auth with TLS" >> $SSSD
+echo "#ldap_default_bind_dn = CN=Administrator,CN=Users,DC=example,DC=com" >> $SSSD
+echo "#ldap_default_authtok = dcd1fferent!" >> $SSSD
+echo "#ldap_tls_cacert = /etc/ssl/certs/dc1.pem,/etc/ssl/certs/dc2.pem" >> $SSSD
+echo "#ldap_uri = ldaps://dc1.dodifferent.it,ldaps://dc2.dodifferent.it" >> $SSSD
+echo "" >> $SSSD
+echo "# Search user optimization" >> $SSSD
+echo "ldap_user_search_base = CN=Users,DC=dodifferent,DC=it" >> $SSSD
+echo "ldap_user_object_class = user" >> $SSSD
+echo "" >> $SSSD
+echo "# Search group optimization" >> $SSSD
+echo "ldap_group_search_base = OU=Groups,DC=dodifferent,DC=it" >> $SSSD
+echo "ldap_group_object_class = group" >> $SSSD
+echo "" >> $SSSD
+echo "# Workaround" >> $SSSD
+echo "ldap_use_tokengroups = false" >> $SSSD
+
+chown root:root $SSSD
+chmod 600 $SSSD
+
+mv $SSSD $SSSD.new
+
+exit 0

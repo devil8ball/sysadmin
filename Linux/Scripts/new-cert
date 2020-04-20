@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Create a new self-signed certificate
+# @ Version 1.1
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Arguments check
+if [ -z "$1" ]; then
+    echo -e "$RED Missing certificate name... $DEFAULT"
+	echo "Use new-cert <name>"
+	echo "Ex. new-cert snakeoil"
+	exit -1
+fi
+
+# Output folder
+DATE="$(date +%Y%m%d)"
+OUT="/tmp/$DATE-$1"
+
+# Install missing package if needed
+if [ $(dpkg-query -W -f='${Status}' openssl 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+	echo "$YELLOW Installing missing package... $DEFAULT"
+	apt-get -y install openssl
+fi
+
+# Create output folder
+rm -f $OUT/*
+mkdir -p $OUT
+
+# Generate a x509 certificate, valid for 10 years
+openssl genrsa -des3 -out $OUT/$1.key 2048
+openssl req -new -key $OUT/$1.key -out $OUT/$1.csr
+openssl req -new -key $OUT/server.key -out $OUT/$1.csr
+cp $OUT/$1.key $OUT/$1.key.old
+openssl rsa -in $OUT/$1.key.old -out $OUT/$1.key
+openssl x509 -req -sha256 -days 3650 -in $OUT/$1.csr -signkey $OUT/$1.key -out $OUT/$1.crt
+
+# Fix permission
+chmod 777 $OUT/$1.*
+
+echo ""
+echo -e " Files created in $GREEN$OUT$DEFAULT:"
+echo -e " $GREEN$1.key.old$DEFAULT \t certificate key, with password"
+echo -e " $GREEN$1.key$DEFAULT \t certificate key, without password"
+echo -e " $GREEN$1.csr$DEFAULT \t Certificate Sign Request"
+echo -e " $GREEN$1.crt$DEFAULT \t Self Signed Certificate"
+echo ""
+
+exit 0

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Test DH parameter for SSL connections
+# It MUST be 2048 or highter
+# @ Version 1.0
+# © 2018 Leonardo Ziviani all rights reserved
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Port
+PORT="443"
+
+# Arguments check
+if [ -z "$1" ]; then
+    echo -e "$RED Missing arguments... $DEFAULT"
+	echo " Use dh-test <name>"
+	echo " Ex. dh-test www.acme.us"
+	exit -1
+fi
+
+if [ ! -z "$2" ]; then
+    PORT=$2
+fi
+
+openssl s_client -connect $1:$PORT -cipher "EDH" | grep "Server Temp Key"
+
+exit 0

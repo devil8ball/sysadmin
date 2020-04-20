@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Active Directory scripts help
+# @ Version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+clear
+
+echo ""
+echo " Scripts explanation - Active Directory"
+echo ""
+
+printf " \033[1mad-cript-help-me\033[0m \t - \t Active Directory scripts help\n"
+printf " \033[1mfirst-setup\033[0m \t\t - \t Full VM configuration in order to join in Active Directory\n"
+printf " \033[1mjoin-domain\033[0m \t\t - \t Join the VM in the default domain\n"
+printf " \033[1mleave-domain\033[0m \t\t - \t Leave the VM from the default domain\n"
+printf " \033[1mrefresh-ad\033[0m \t\t - \t Clear SSSD cache (useful if new AD entry are not correcly shown or updated)\n"
+echo ""
+
+exit 0

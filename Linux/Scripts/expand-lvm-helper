@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# LVM expander helper
+# Use with EXTREME caution!
+# @version 1.2
+# © 2017 Leonardo Ziviani all rights reserved
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo "This script must be run as root"
+	exit -1
+fi
+
+# Install missing package if needed
+if [ $(dpkg-query -W -f='${Status}' lvm2 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+	echo "Installing missing package..."
+	apt-get -y install lvm2;
+fi
+
+# Install missing package if needed
+if [ $(dpkg-query -W -f='${Status}' e2fsprogs 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+	echo "Installing missing package..."
+	apt-get -y install e2fsprogs;
+fi
+
+# Install missing package if needed
+if [ $(dpkg-query -W -f='${Status}' parted 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+	echo "Installing missing package..."
+	apt-get -y install parted;
+fi
+
+clear
+
+echo ""
+echo "USE WITH EXTREME CAUTION!!!"
+echo "Wrong arguments may broke VM disks!!!"
+echo "NOTE: Increase disk in VMWare first..."
+echo ""
+
+DISK_ID="$(ls /sys/class/scsi_disk/)"
+
+echo ""
+fdisk -l | grep /dev/sd
+
+echo ""
+echo "Use the previous list to get the partition ID"
+echo "For /dev/sdaX use 'sda' without quotes"
+echo "Partition id [ex. sda]: "
+
+read partition
+while [[ $partition != "sd"* ]]
+do
+        echo "Wrong partition ID...";
+        echo "Please insert a valid one: "
+        read partition
+done
+
+SIZE=${#partition}
+while [ "$SIZE" -ne "3" ]
+do
+        echo "Partition ID must be 3 length...";
+        echo "Please insert a valid one: "
+        read partition
+        SIZE=${#partition}
+done
+
+echo 1 > /sys/class/scsi_disk/$DISK_ID/device/rescan
+
+echo ""
+echo "Use the utility to create a new LOGICAL partition, type LVM (8e code)..."
+echo "Once created, get the new partition name [ex. sda6]"
+echo "If some error occour, it may be related to a wrong given partition ID..."
+read -n1 -rsp $'Press any key to continue...'
+cfdisk /dev/$partition
+
+echo ""
+echo "Insert the previous created partition name [ex. sda6]:"
+read new
+
+partprobe /dev/$partition
+pvcreate /dev/$new
+vgextend LVM /dev/$new
+lvextend /dev/LVM/ROOT /dev/$new
+resize2fs /dev/LVM/ROOT
+
+echo "All done... run df -h and check if disk size is ok..."
+
+exit 0
