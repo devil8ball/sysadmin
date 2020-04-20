@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Set defaults firewall rules
+
+# CONFIG
+SUBNET=( "10.10.10.0/24" "10.10.11.0/24" )
+PORT=( "22" "8980" )
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Files path
+RULES="/etc/iptables/rules.v4"
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Install missing package if needed
+if [ $(dpkg-query -W -f='${Status}' iptables-persistent 2>/dev/null | grep -c "ok installed") -eq 0 ]; 	then
+	echo "$YELLOW Installing missing package... $DEFAULT"
+	apt-get -y install iptables-persistent;
+fi
+
+# Base rules
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+# Log limit
+iptables -N LOGS
+iptables -A LOGS -m limit --limit 5/m --limit-burst 10 -j LOG
+iptables -A LOGS -j DROP
+
+# Ban chain
+iptables -N BAN
+iptables -I INPUT -j BAN
+iptables -A BAN -j RETURN
+iptables -I BAN -s 1.2.3.4 -j DROP
+
+# Loopback
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -s 127.0.0.1 -j ACCEPT
+
+# Allow limited ping request
+iptables -A INPUT -p icmp -m limit --limit 10/s --limit-burst 100 -j ACCEPT
+
+# Allow port from everywhere with burst limit
+for i in "${PORT[@]}"
+do
+	iptables -A INPUT -p tcp -m tcp --dport "$i" -m limit --limit 10/s --limit-burst 100 -m state --state NEW,ESTABLISHED -j ACCEPT
+done
+
+# Allow subnet traffic
+for i in "${SUBNET[@]}"
+do
+	iptables -A INPUT -s "$1" -j ACCEPT
+done
+
+# Allow established connections
+iptables -A INPUT -p tcp -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p udp -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p icmp -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Drop unmatched traffic
+iptables -A INPUT -j DROP
+
+# Save rules Debian way
+iptables-save > $RULES
+
+exit 0

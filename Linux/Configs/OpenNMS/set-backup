@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Set backup of OpenNMS
+
+# PATHS
+ROOT_PATH="/tools"
+BACKUP_PATH="$ROOT_PATH/backup"
+SCRIPT_PATH="$ROOT_PATH/scripts"
+GUIDE_PATH="$ROOT_PATH/guide"
+
+# Files
+PROFILE="/etc/profile"
+
+# Text color and style
+DEFAULT='\e[0m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+
+# Check if is running as root
+if [ "$EUID" -ne 0 ]; then
+	echo -e "$RED This script must be run as root... $DEFAULT"
+	exit -1
+fi
+
+# Create file and folders
+mkdir -p $ROOT_PATH
+mkdir -p $BACKUP_PATH
+mkdir -p $SCRIPT_PATH
+chown -R postgres:postgres $ROOT_PATH
+
+# Update profile
+echo "" >> $PROFILE
+echo "Add scripts to global path" >> $PROFILE
+echo "export PATH=\$PATH:$ROOT_PATH" >> $PROFILE
+echo "" >> $PROFILE
+echo "# Date in history" >> $PROFILE
+echo "export HISTTIMEFORMAT=\"%d/%m/%y %T \"" >> $PROFILE
+
+exit 0
