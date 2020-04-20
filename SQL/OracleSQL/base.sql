@@ -219,3 +219,112 @@ FROM   (
 ORDER BY tablespace_name;
 
 SET PAGESIZE 14
+
+-- Tables that may benefit from a rebuild --
+-- total space usage up to the  HWM is 10
+   LOOP
+      DBMS_OUTPUT.put_line (   'Candidate table is '
+                            || space_usage.owner
+                            || '.'
+                            || space_usage.table_name
+                           );
+      DBMS_OUTPUT.put_line (   'Which is using  '
+                            || space_usage.space_full
+                            || '% of allocated space. '
+                           );
+      DBMS_OUTPUT.put_line (   'Which is using  '
+                            || space_usage.hwm_full
+                            || '% of allocated space to the HWM. '
+                           );
+      DBMS_OUTPUT.put_line ('You can use this script to compact the table:');
+      DBMS_OUTPUT.put_line (   'alter table '
+                            || space_usage.owner
+                            || '.'
+                            || space_usage.table_name
+                            || ' enable row movement; '
+                           );
+      DBMS_OUTPUT.put_line (   'alter table '
+                            || space_usage.owner
+                            || '.'
+                            || space_usage.table_name
+                            || ' shrink space cascade; '
+                           );
+      DBMS_OUTPUT.put_line (CHR (13));
+   END LOOP;
+END;
+/
+                                 
+--Calcualte SCHEMA SIZE   
+SELECT
+   owner, table_name, round(sum(bytes)/1024/1024, 2) Mb
+FROM
+(
+SELECT segment_name table_name, owner, bytes
+ FROM dba_segments
+ WHERE segment_type = 'TABLE'
+
+ UNION ALL
+ SELECT i.table_name, i.owner, s.bytes
+ FROM dba_indexes i, dba_segments s
+ WHERE s.segment_name = i.index_name
+ AND   s.owner = i.owner
+ AND   s.segment_type = 'INDEX'
+
+ UNION ALL
+ SELECT l.table_name, l.owner, s.bytes
+ FROM dba_lobs l, dba_segments s
+ WHERE s.segment_name = l.segment_name
+ AND   s.owner = l.owner
+ AND   s.segment_type = 'LOBSEGMENT'
+
+ UNION ALL
+ SELECT l.table_name, l.owner, s.bytes
+ FROM dba_lobs l, dba_segments s
+ WHERE s.segment_name = l.index_name
+ AND   s.owner = l.owner
+ AND   s.segment_type = 'LOBINDEX'
+ )
+WHERE owner = 'DDCOM'
+GROUP BY table_name, owner
+--HAVING SUM(bytes)/1024/1024 > 10  /* Ignore really small tables */
+ORDER BY SUM(bytes) desc
+;
+
+---Commander Occupacy
+SELECT  SUM(Mb) AS TOTAL FROM
+(
+SELECT
+   owner, table_name, round(sum(bytes)/1024/1024, 2) Mb
+FROM
+(SELECT segment_name table_name, owner, bytes
+ FROM dba_segments
+ WHERE segment_type = 'TABLE'
+ /*
+ UNION ALL
+ SELECT i.table_name, i.owner, s.bytes
+ FROM dba_indexes i, dba_segments s
+ WHERE s.segment_name = i.index_name
+ AND   s.owner = i.owner
+ AND   s.segment_type = 'INDEX'
+ /*
+ UNION ALL
+ SELECT l.table_name, l.owner, s.bytes
+ FROM dba_lobs l, dba_segments s
+ WHERE s.segment_name = l.segment_name
+ AND   s.owner = l.owner
+ AND   s.segment_type = 'LOBSEGMENT'
+ UNION ALL
+ SELECT l.table_name, l.owner, s.bytes
+ FROM dba_lobs l, dba_segments s
+ WHERE s.segment_name = l.index_name
+ AND   s.owner = l.owner
+ AND   s.segment_type = 'LOBINDEX'
+ */
+ )
+WHERE owner = 'DDCOM'
+AND table_name LIKE 'DD_COM_%'
+GROUP BY table_name, owner
+--HAVING SUM(bytes)/1024/1024 > 10  /* Ignore really small tables */
+ORDER BY SUM(bytes) desc
+)
+;
