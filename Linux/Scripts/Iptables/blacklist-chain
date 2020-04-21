@@ -32,6 +32,10 @@ iptables --flush BLACKLIST
 # Fill chain with ips
 while read line
 do
+	# Skip comments
+        if [[ "$line" == "#"* ]]; then
+            continue
+        fi
 	iptables -I BLACKLIST -s $line -j DROP
 done <  $FILE
 
