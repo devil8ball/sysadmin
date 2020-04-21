@@ -19,7 +19,6 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Files path
-# Files path
 DEBIAN="/etc/iptables/rules.v4"
 CENTOS="/etc/iptables/iptables.rules"
 ARCH="/etc/iptables/iptables.rules"
@@ -38,17 +37,11 @@ LOCAL="10.10.10"
 # Standard loopback
 LOOPBACK="127.0"
 
-# Text color and style
-DEFAULT='\e[0m'
-RED='\e[0;31m'
-GREEN='\e[0;32m'
-YELLOW='\e[0;33m'
-
 # Arguments check
 if [ -z $1 ]; then
-    echo -e "$RED Missing arguments... $DEFAULT"
-    echo " Use ban-ip <ipv4 address>"
-	echo " Ex. ban-ip 1.1.1.1"
+	echo -e "${RED}Missing arguments...${DEFAULT}"
+	echo "Use ban-ip <ipv4 address>"
+	echo "Ex. ban-ip 1.1.1.1"
     exit -1
 fi
 
@@ -56,7 +49,7 @@ fi
 if [[ $1 == *[A-z]* ]]; then
 	ip="$(host $1 | awk '{print $4}' | tail -n1)"
 	if [[ $ip == *"found:"* ]]; then
-		echo -e "$RED Invalid or unresolvable hostname... $DEFAULT"
+		echo -e "${RED}Invalid or unresolvable hostname...${DEFAULT}"
 		exit -1
 	fi
 	echo -e " $GREEN$1$DEFAULT resolved as $GREEN$ip $DEFAULT..."
@@ -66,31 +59,31 @@ fi
 if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	for i in 1 4; do
 		if [ $(echo "$1" | cut -d. -f$i) -gt 254 ]; then
-			echo -e "$RED Malformed ip address... $DEFAULT"
-			echo " You cannot insert a value greater than 254 in an address.."
+			echo -e "${RED}Malformed ip address...${DEFAULT}"
+			echo "You cannot insert a value greater than 254 in an address.."
 			exit -1
 		fi
 	done
 fi
 
-# Check if given ip address contains a 0 at the end
+# Check if given ip address contains a 0 at the end (okay, may be a non-sense control...)
 if [[ $1 == *".0" ]]; then
-	echo -e "$RED Malformed ip address... $DEFAULT"
-	echo " You cannot insert a network address..."
+	echo -e "${RED}Malformed ip address...${DEFAULT}"
+	echo "You cannot insert a network address..."
 	exit -1
 fi
 
 # Check if given ip address start with 0
 if [[ $1 == "0."* ]]; then
-	echo -e "$RED Malformed ip address... $DEFAULT"
-	echo " You cannot insert an address like 0.x.x.x..."
+	echo -e "${RED} Malformed ip address... $DEFAULT"
+	echo "You cannot insert an address like 0.x.x.x..."
 	exit -1
 fi
 
 # Check if given ip address is the yout public ip
 if [[ $1 == $PUBLIC ]] ; then
-    echo -e "$RED You're try to ban your public IP... $DEFAULT"
-	echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
+	echo -e "${RED}You're try to ban your public IP...${DEFAULT}"
+	echo -e "This is probably ${RED}NOT${DEFAULT} what you want!"
 	exit -1
 fi
 
@@ -98,36 +91,36 @@ fi
 for i in "${IP[@]}"
 do
 	if [[ $1 == "$i"* ]] ; then
-		echo -e "$RED You're try to ban an unbannable ip... $DEFAULT"
-        echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
-        exit -1
+		echo -e "${RED}You're try to ban an unbannable ip... $DEFAULT"
+        	echo -e "This is probably ${RED}NOT${DEFAULT} what you want!"
+        	exit -1
 	fi
 done
 
 # Check if given ip address is a local ip
 if [[ $1 == "$LOCAL"* ]] ; then
-    echo -e "$RED You're try to ban a local ip address... $DEFAULT"
-    echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
-    exit -1
+	echo -e "${RED}You're try to ban a local ip address...${DEFAULT}"
+	echo -e "This is probably ${RED}NOT${DEFAULT} what you want!"
+    	exit -1
 fi
 
 # Check if given ip address is the loopback address
 if [[ $1 == "$LOOPBACK"* ]] ; then
-    echo -e "$RED You're try to ban the loopback ip address...$DEFAULT"
-    echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
-    exit -1
+	echo -e "${RED} You're try to ban the loopback ip address...${DEFAULT}"
+    	echo -e "This is probably ${RED}NOT${DEFAULT} what you want!"
+    	exit -1
 fi
 
 # Check if ip is alerady listed
 if cat $LIST | grep -q "$1"; then
-    echo -e "${YELLOW}$1 is already banned...${DEFAULT}"
-    exit -1
+	echo -e "${YELLOW}$1 is already banned...${DEFAULT}"
+    	exit -1
 fi
 
 # Check if chain "BAN" exist
 CHAIN="$(iptables -n --list BAN | wc -l)"
 if [ "$CHAIN" -lt "3" ]; then
-	echo -e "${RED} Missing BAN chain... ${DEFAULT}"
+	echo -e "${RED}Missing BAN chain...${DEFAULT}"
 	exit -1
 fi
 
