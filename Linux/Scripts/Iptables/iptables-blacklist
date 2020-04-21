@@ -14,7 +14,7 @@ YELLOW='\e[0;33m'
 
 # Check if is running as root
 if [ "$EUID" -ne 0 ]; then
-	echo -e "$RED This script must be run as root... $DEFAULT"
+	echo -e "${RED}This script must be run as root...${DEFAULT}"
 	exit -1
 fi
 
