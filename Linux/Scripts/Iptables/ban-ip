@@ -18,11 +18,8 @@ if [ "$EUID" -ne 0 ]; then
 	exit -1
 fi
 
-# Files path
-DEBIAN="/etc/iptables/rules.v4"
-CENTOS="/etc/iptables/iptables.rules"
-ARCH="/etc/iptables/iptables.rules"
-RULES="$DEBIAN"
+# Iptables files path (may change on other distro)
+RULES="/etc/iptables/iptables.rules"
 LIST="/etc/iptables/ban.list"
 
 # Unbannable IPs list (script will check and refuse to ban)
