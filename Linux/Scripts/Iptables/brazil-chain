@@ -1,0 +1,12 @@
+#!/bin/bash
+
+FILE="/etc/iptables/brazil.rules"
+
+# Flush old chain
+iptables --flush BRAZIL
+
+# Fill chain with ips
+while read line
+do
+	iptables -I BRAZIL -s $line -j DROP
+done < $FILE

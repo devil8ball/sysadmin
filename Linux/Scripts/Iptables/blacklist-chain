@@ -6,7 +6,5 @@ iptables --flush BLACKLIST
 # Fill chain with ips
 while read line
 do
-        iptables -I BLACKLIST -s $line -j DROP
+	iptables -I BLACKLIST -s $line -j DROP
 done <  /etc/iptables/blacklist.rules
-
-exit 0

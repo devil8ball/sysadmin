@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Delete old chain
+iptables --flush NIGERIA
+
+# Fill chain with ips
+while read line
+do
+	iptables -I NIGERIA -s $line -j DROP
+done <  /etc/iptables/nigeria.rules

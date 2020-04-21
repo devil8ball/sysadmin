@@ -1,0 +1,12 @@
+#!/bin/bash
+
+FILE="/etc/iptables/ukraine.rules"
+
+# Flush old chain
+iptables --flush UKRAINE
+
+# Fill chain with ips
+while read line
+do
+	iptables -I UKRAINE -s $line -j DROP
+done < $FILE
