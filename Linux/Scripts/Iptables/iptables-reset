@@ -1,12 +1,7 @@
 #!/bin/bash
 
 # Reset iptables to default one
-# @ Version 1.0
-# © 2018 Leonardo Ziviani all rights reserved
-
-# Iptables configs files
-IPV4="/etc/iptables/rules.v4"
-IPV6="/etc/iptables/rules.v6"
+# © 2020 Leonardo Ziviani all rights reserved
 
 # Text color and style
 DEFAULT='\e[0m'
@@ -14,23 +9,21 @@ RED='\e[0;31m'
 GREEN='\e[0;32m'
 YELLOW='\e[0;33m'
 
+# Iptables configs files
+FILE="/etc/iptables/iptables.rules"
+
 # Check if is running as root
 if [ "$EUID" -ne 0 ]; then
-	echo -e "$RED This script must be run as root... $DEFAULT"
+	echo -e "${RED}This script must be run as root...${DEFAULT}"
 	exit -1
 fi
 
 # Backup ipv4 rules if exists
-if [ -f $IPV4 ]; then
-    cp $IPV4 $IPV4.before.erase
+if [ -f $FILE ]; then
+    cp $FILE $FILE.before.erase
 fi
 
-# Backup ipv6 rules if exists
-if [ -f $IPV6 ]; then
-    cp $IPV6 $IPV6.before.erase
-fi
-
-# Flush ipv4 rules
+# Flush rules
 iptables -F
 iptables -X
 iptables -t nat -F
@@ -45,25 +38,7 @@ iptables -P INPUT ACCEPT
 iptables -P FORWARD DROP
 iptables -P OUTPUT ACCEPT
 
-# Save ipv4 rules
-iptables-save > /etc/iptables/rules.v4
-
-# Flush ipv6 rules
-ip6tables -F
-ip6tables -X
-ip6tables -t nat -F
-ip6tables -t nat -X
-ip6tables -t mangle -F
-ip6tables -t mangle -X
-ip6tables -t raw -F
-ip6tables -t raw -X
-
-# Set default rules
-ip6tables -P INPUT DROP
-ip6tables -P FORWARD DROP
-ip6tables -P OUTPUT DROP
-
-# Save ipv6 rules
-ip6tables-save > /etc/iptables/rules.v6
+# Save rules
+iptables-save > $FILE
 
 exit 0
