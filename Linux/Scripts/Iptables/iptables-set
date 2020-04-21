@@ -2,6 +2,7 @@
 
 # 'Advanced' iptables firewall rules
 # You need iptables (and iptables-persistent on some distro) installed 
+# You also need, if you want to use geo-location chain, copy *country*-chain in $BASE folder
 # Better to use with 'nohup'
 # @version 1.3
 # © 2020 Leonardo Ziviani all rights reserved
@@ -17,6 +18,7 @@ GREEN='\e[0;32m'
 YELLOW='\e[0;33m'
 
 # Files path
+BASE="/etc/iptables"
 DEBIAN="/etc/iptables/rules.v4"
 CENTOS="/etc/iptables/iptables.rules"
 ARCH="/etc/iptables/iptables.rules"
@@ -103,6 +105,16 @@ iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 # Drop unmatched traffic
 iptables -A INPUT -j DROP
+
+# Country and blacklist chain automatic update
+"$BASE"/update-blacklist
+"$BASE"/blacklist-chain
+"$BASE"/iptables/brazil-chain
+"$BASE"/iptables/china-chain
+"$BASE"/iptables/nigeria-chain
+"$BASE"/iptables/ukraine-chain
+"$BASE"/iptables/russia-chain
+
 
 # Save rules Debian way
 iptables-save > $RULES
