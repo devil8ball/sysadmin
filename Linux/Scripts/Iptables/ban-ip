@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ban given ip address (banned ip will not be able to connect to the server in ANY way)
-# This scripts support only IPv4 style address or DNS name
+# This scripts support only IPv4 style address without network mask or DNS name
 # Iptables MUST have the BAN chain cofigured (see set-firewall script for detail)
 # @ Version 2.0
 # © 2018 Leonardo Ziviani all rights reserved
@@ -19,16 +19,20 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Files path
-RULES="/etc/iptables/rules.v4"
+# Files path
+DEBIAN="/etc/iptables/rules.v4"
+CENTOS="/etc/iptables/iptables.rules"
+ARCH="/etc/iptables/iptables.rules"
+RULES="$DEBIAN"
 LIST="/etc/iptables/ban.list"
 
-# Unbannable IPs list
-IP=( "151.69.124.94" "54.194.253.39" "54.194.185.171" "54.229.199.218" "86.44.58.189" "209.133.104.41" "92.246.34" );
+# Unbannable IPs list (script will check and refuse to ban)
+IP=( "1.1.1.1" "2.2.2.2" );
 
-# Public ip address
-PUBLIC="151.69.124.90"
+# Your public IP address (script will check and refuse to ban)
+PUBLIC="4.5.6.7"
 
-# Local subnet
+# Your local subnet (script will check and refuse to ban)
 LOCAL="10.10.10"
 
 # Standard loopback
@@ -86,7 +90,7 @@ fi
 # Check if given ip address is the yout public ip
 if [[ $1 == $PUBLIC ]] ; then
     echo -e "$RED You're try to ban your public IP... $DEFAULT"
-	echo -e " This is probably $RED NOT $DEFAULT what you want!"
+	echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
 	exit -1
 fi
 
@@ -95,7 +99,7 @@ for i in "${IP[@]}"
 do
 	if [[ $1 == "$i"* ]] ; then
 		echo -e "$RED You're try to ban an unbannable ip... $DEFAULT"
-        echo -e " This is probably $RED NOT $DEFAULT what you want!"
+        echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
         exit -1
 	fi
 done
@@ -103,27 +107,27 @@ done
 # Check if given ip address is a local ip
 if [[ $1 == "$LOCAL"* ]] ; then
     echo -e "$RED You're try to ban a local ip address... $DEFAULT"
-    echo -e " This is probably $RED NOT $DEFAULT what you want!"
+    echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
     exit -1
 fi
 
 # Check if given ip address is the loopback address
 if [[ $1 == "$LOOPBACK"* ]] ; then
     echo -e "$RED You're try to ban the loopback ip address...$DEFAULT"
-    echo -e " This is probably $REDNOT$DEFAULT what you want!"
+    echo -e " This is probably ${RED}NOT${DEFAULT} what you want!"
     exit -1
 fi
 
 # Check if ip is alerady listed
 if cat $LIST | grep -q "$1"; then
-    echo -e "$YELLOW $1 is already banned...$DEFAULT"
+    echo -e "${YELLOW}$1 is already banned...${DEFAULT}"
     exit -1
 fi
 
 # Check if chain "BAN" exist
 CHAIN="$(iptables -n --list BAN | wc -l)"
 if [ "$CHAIN" -lt "3" ]; then
-	echo -e "$RED Missing BAN chain... $DEFAULT"
+	echo -e "${RED} Missing BAN chain... ${DEFAULT}"
 	exit -1
 fi
 
@@ -136,6 +140,6 @@ echo $1 >> $LIST
 iptables -I BAN -s $1 -j DROP
 iptables-save > $RULES
 
-echo -e "$GREEN Rules for $1 applied and saved... $DEFAULT"
+echo -e "${GREEN}Rules for $1 applied and saved...${DEFAULT}"
 
 exit 0
