@@ -1,0 +1,13 @@
+#!/bin/bash
+
+BASE="/etc/iptables/"
+LINK="https://myip.ms/files/blacklist/general/latest_blacklist.txt"
+OUT="blacklist.rules"
+
+wget $LINK -O $BASE/$OUT
+sed -i -e 1,13d $BASE$OUT
+sed -i '/:/d' $BASE$OUT
+dos2unix --quiet $BASE/$OUT
+awk -i inplace '{print $1}' $BASE/$OUT
+
+exit 0
