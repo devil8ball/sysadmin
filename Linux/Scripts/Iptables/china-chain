@@ -1,0 +1,14 @@
+#!/bin/bash
+
+FILE="/etc/iptables/china.rules"
+
+# Flush old chain
+iptables --flush CHINA
+
+# Fill chain with ips
+while read line
+do
+        iptables -I CHINA -s $line -j DROP
+done < $FILE
+
+exit 0
