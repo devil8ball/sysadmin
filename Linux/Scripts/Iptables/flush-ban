@@ -10,14 +10,25 @@ RED='\e[0;31m'
 GREEN='\e[0;32m'
 YELLOW='\e[0;33m'
 
+# Files path
+BASE="/etc/iptables"
+DEBIAN="/etc/iptables/rules.v4"
+CENTOS="/etc/iptables/iptables.rules"
+ARCH="/etc/iptables/iptables.rules"
+RULES="$DEBIAN"
+
 # Check if is running as root
 if [ "$EUID" -ne 0 ]; then
 	echo -e "$RED This script must be run as root... $DEFAULT"
 	exit -1
 fi
 
-# Files path
-RULES="/etc/iptables/rules.v4"
+# Check if chain "BAN" exist
+CHAIN="$(iptables -n --list BAN | wc -l)"
+if [ "$CHAIN" -lt "3" ]; then
+	echo -e "${RED}Missing BAN chain...${DEFAULT}"
+	exit -1
+fi
 
 # Backup of old rules
 rm -f $RULES.bck
@@ -26,7 +37,6 @@ cp $RULES $RULES.bck
 # Flush rules
 iptables -F BAN
 iptables -A BAN -j RETURN
-iptables -I BAN -s 1.2.3.4 -j DROP
 iptables-save > $RULES
 
 echo "BAN chain flushed and saved..."
