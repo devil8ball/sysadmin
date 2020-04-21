@@ -4,6 +4,7 @@
 # @version 1.3
 # © 2020 Leonardo Ziviani all rights reserved
 
+# IP list file
 FILE="/etc/iptables/china.rules"
 
 # Text color and style
@@ -19,9 +20,9 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Check if chain "china" exist
-CHAIN="$(iptables -n --list china | wc -l)"
+CHAIN="$(iptables -n --list CHINA | wc -l)"
 if [ "$CHAIN" -lt "3" ]; then
-	echo -e "${RED}Missing china chain...${DEFAULT}"
+	echo -e "${RED}Missing CHINA chain...${DEFAULT}"
 	exit -1
 fi
 
