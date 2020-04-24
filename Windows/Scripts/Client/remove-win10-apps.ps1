@@ -54,8 +54,4 @@ Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microso
 Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.MicrosoftStickyNotes"} | Remove-AppxProvisionedPackage
 Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.OneConnect"} | Remove-AppxProvisionedPackage -online
 
-
-
-
-
 exit 0
