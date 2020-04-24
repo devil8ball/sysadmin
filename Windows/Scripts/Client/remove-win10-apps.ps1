@@ -1,4 +1,5 @@
 # Remove all uneeded apps of Windows 10 (and disable app installation for new users)
+# Run with admin rights
 # © 2020 Leonardo Ziviani all rights reserved
 
 Get-AppxPackage -allusers Microsoft.WindowsFeedbackHub | Remove-AppxPackage
@@ -26,5 +27,35 @@ Get-AppxPackage -allusers Microsoft.XboxIdentityProvider | Remove-AppxPackage
 Get-AppxPackage -allusers Microsoft.Wallet | Remove-AppxPackage
 Get-AppxPackage -allusers Microsoft.MicrosoftStickyNotes | Remove-AppxPackage
 Get-AppxPackage -allusers Microsoft.OneConnect | Remove-AppxPackage
+
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.WindowsFeedbackHub"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.BingWeather"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Office.OneNote"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.ZuneVideo"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.xboxapp"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.ZuneMusic"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Xbox.TCUI"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.XboxGameOverlay"}  | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Microsoft3DViewer"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Messaging"}   | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.MixedReality.Portal"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.XboxGamingOverlay"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Print3D"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Microsoft.WindowsMaps"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.WindowsSoundRecorder"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.MicrosoftOfficeHub"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.WindowsAlarms"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.People"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.XboxSpeechToTextOverlay"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.SkypeApp"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.YourPhone"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.XboxIdentityProvider"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.Wallet"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.MicrosoftStickyNotes"} | Remove-AppxProvisionedPackage
+Get-appxprovisionedpackage -online | where-object {$_.PackageName -like "Microsoft.OneConnect"} | Remove-AppxProvisionedPackage -online
+
+
+
+
 
 exit 0
